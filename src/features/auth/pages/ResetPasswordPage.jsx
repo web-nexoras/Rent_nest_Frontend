@@ -35,10 +35,13 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="animate-fade-in">
-      <h1 className="text-3xl font-bold tracking-tight text-navy-900">Set a new password</h1>
-      <p className="mt-2 text-sm text-navy-400">Choose a password with at least 6 characters.</p>
+      <p className="text-[11px] font-bold uppercase tracking-widest text-brand-600">Security Update</p>
+      <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-navy-900 sm:text-3xl">
+        Set a new password
+      </h1>
+      <p className="mt-1.5 text-sm text-navy-500">Choose a strong password with at least 6 characters.</p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5" noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-7 space-y-5" noValidate>
         <PasswordInput
           label="New password"
           autoComplete="new-password"
@@ -56,9 +59,9 @@ export default function ResetPasswordPage() {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-navy-400">
+      <p className="mt-6 text-center text-sm text-navy-500">
         Link expired?{" "}
-        <Link to="/forgot-password" className="font-semibold text-brand-600">
+        <Link to="/forgot-password" className="font-semibold text-brand-600 hover:text-brand-700">
           Request a new one
         </Link>
       </p>

@@ -22,10 +22,9 @@ import { useApiMutation } from "../../../hooks/useApiMutation.js";
 import { currentMonth, formatDate, formatDateTime, formatMoney, formatMonth } from "../../../lib/utils.js";
 
 const LIMIT = 8;
-// Must match VALID_METHODS in controllers/payments/submitPayment.js
 const METHODS = ["bKash", "Nagad", "Rocket", "Upay", "Bank", "Cash"];
 const TABS = [
-  { value: "", label: "All" },
+  { value: "", label: "All Payments" },
   { value: "pending", label: "Pending" },
   { value: "verified", label: "Verified" },
   { value: "rejected", label: "Rejected" },
@@ -85,7 +84,7 @@ function PaymentFormModal({ open, onClose, rent, preset }) {
       footer={
         <>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button variant="secondary" type="submit" form="payment-form" loading={mutation.isPending}>
+          <Button variant="primary" type="submit" form="payment-form" loading={mutation.isPending}>
             Submit payment
           </Button>
         </>
@@ -123,7 +122,8 @@ function ReceiptModal({ paymentId, onClose }) {
     <Modal
       open={Boolean(paymentId)}
       onClose={onClose}
-      title="Payment receipt"
+      title="Official Payment Receipt"
+      description="Verified rent receipt issued by Rent Nest."
       footer={
         <>
           <Button variant="outline" onClick={onClose}>Close</Button>
@@ -138,18 +138,18 @@ function ReceiptModal({ paymentId, onClose }) {
       ) : query.isError ? (
         <ErrorState error={query.error} onRetry={query.refetch} title="Receipt unavailable" />
       ) : (
-        <div id="receipt-print" className="rounded-2xl border border-navy-100 p-6">
+        <div id="receipt-print" className="rounded-2xl border border-navy-200/70 bg-white p-6">
           <div className="flex items-start justify-between">
             <Logo />
             <div className="text-right">
-              <Badge status="verified">Paid</Badge>
+              <Badge status="verified">Paid & Verified</Badge>
               <p className="mt-2 break-all font-mono text-xs text-navy-400">{receipt.receiptNumber}</p>
             </div>
           </div>
-          <div className="my-6 rounded-xl bg-navy-50 p-5 text-center">
-            <p className="text-xs uppercase tracking-wide text-navy-400">Amount paid</p>
-            <p className="mt-1 text-3xl font-bold text-navy-900">{formatMoney(receipt.amount)}</p>
-            <p className="mt-1 text-sm text-navy-500">for {formatMonth(receipt.month)}</p>
+          <div className="my-6 rounded-2xl bg-gradient-to-br from-navy-950 via-navy-900 to-brand-950 p-5 text-center text-white">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-brand-300">Amount Paid</p>
+            <p className="mt-1 font-display text-3xl font-bold tabular">{formatMoney(receipt.amount)}</p>
+            <p className="mt-1 text-xs text-navy-300">Billing period: {formatMonth(receipt.month)}</p>
           </div>
           <dl className="divide-y divide-navy-100 text-sm">
             {[
@@ -163,7 +163,7 @@ function ReceiptModal({ paymentId, onClose }) {
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between gap-4 py-2.5">
                 <dt className="text-navy-400">{label}</dt>
-                <dd className="break-all text-right font-medium text-navy-800">{value || "—"}</dd>
+                <dd className="break-all text-right font-semibold text-navy-800">{value || "—"}</dd>
               </div>
             ))}
           </dl>
@@ -183,7 +183,6 @@ export default function TenantPaymentsPage() {
 
   useEffect(() => setPage(1), [status]);
 
-  // Clean the ?pay=1 hint once consumed so refresh doesn't reopen the dialog.
   useEffect(() => {
     if (params.get("pay")) setParams({}, { replace: true });
   }, [params, setParams]);
@@ -194,7 +193,6 @@ export default function TenantPaymentsPage() {
     queryFn: () => paymentService.mine({ status: status || undefined }),
   });
 
-  // Backend returns all of the tenant's payments in one list (no pagination), so page on the client.
   const all = query.data?.payments || [];
   const rows = all.slice((page - 1) * LIMIT, page * LIMIT);
   const hasUnit = Boolean(unit.data?.unit);
@@ -205,16 +203,16 @@ export default function TenantPaymentsPage() {
   };
 
   const columns = [
-    { key: "month", header: "Month", render: (row) => <span className="font-semibold text-navy-900">{formatMonth(row.month)}</span> },
+    { key: "month", header: "Billing Period", render: (row) => <span className="font-semibold text-navy-900">{formatMonth(row.month)}</span> },
     { key: "unit", header: "Unit", hideOn: "md", render: (row) => (row.unit ? `Unit ${row.unit.unitNumber}` : "—") },
-    { key: "amount", header: "Amount", render: (row) => formatMoney(row.amount) },
+    { key: "amount", header: "Amount", render: (row) => <span className="font-display font-bold tabular text-navy-900">{formatMoney(row.amount)}</span> },
     {
       key: "method",
-      header: "Method",
+      header: "Method & Ref",
       hideOn: "md",
       render: (row) => (
         <div>
-          <p>{row.paymentMethod}</p>
+          <p className="font-medium text-navy-800">{row.paymentMethod}</p>
           <p className="max-w-[9rem] truncate font-mono text-xs text-navy-400" title={row.transactionId}>{row.transactionId}</p>
         </div>
       ),
@@ -241,17 +239,18 @@ export default function TenantPaymentsPage() {
   return (
     <>
       <PageHeader
-        title="Payments"
-        description="Submit rent, track verification and download receipts."
+        eyebrow="Billing & Receipts"
+        title="Rent Payments"
+        description="Submit monthly rent, track verification status, and download official receipts."
         actions={
-          <Button variant="secondary" disabled={!hasUnit} onClick={() => openForm()}>
+          <Button variant="primary" disabled={!hasUnit} onClick={() => openForm()}>
             <Plus className="h-4 w-4" /> Submit payment
           </Button>
         }
       />
 
       {!unit.isLoading && !hasUnit && (
-        <div className="mb-4 rounded-xl border border-accent-300 bg-accent-100 px-4 py-3 text-sm text-navy-700">
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-900">
           You can submit rent once an administrator assigns you a unit.
         </div>
       )}
@@ -271,7 +270,7 @@ export default function TenantPaymentsPage() {
             icon={CreditCard}
             title={status ? `No ${status} payments` : "No payments yet"}
             description="Submitted payments and their verification status appear here."
-            action={hasUnit && !status && <Button variant="secondary" onClick={() => openForm()}><CheckCircle2 className="h-4 w-4" /> Submit your first payment</Button>}
+            action={hasUnit && !status && <Button variant="primary" onClick={() => openForm()}><CheckCircle2 className="h-4 w-4" /> Submit your first payment</Button>}
           />
         }
         footer={<Pagination page={page} total={all.length} limit={LIMIT} onPageChange={setPage} />}

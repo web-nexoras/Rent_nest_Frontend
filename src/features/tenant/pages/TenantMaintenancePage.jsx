@@ -23,9 +23,9 @@ import { formatDate, formatDateTime } from "../../../lib/utils.js";
 const LIMIT = 6;
 const CATEGORIES = ["plumbing", "electrical", "gas", "other"];
 const TABS = [
-  { value: "", label: "All" },
+  { value: "", label: "All Requests" },
   { value: "pending", label: "Pending" },
-  { value: "in-progress", label: "In progress" },
+  { value: "in-progress", label: "In Progress" },
   { value: "resolved", label: "Resolved" },
 ];
 
@@ -68,7 +68,7 @@ function RequestFormModal({ open, onClose }) {
       open={open}
       onClose={onClose}
       title="New maintenance request"
-      description="Tell us what needs fixing and we'll take care of it."
+      description="Tell us what needs fixing and attach photos if helpful."
       footer={
         <>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
@@ -108,8 +108,9 @@ export default function TenantMaintenancePage() {
   return (
     <>
       <PageHeader
-        title="Maintenance"
-        description="Report issues and track their progress."
+        eyebrow="Support & Repairs"
+        title="Maintenance Requests"
+        description="Report unit issues and track repair progress in real time."
         actions={
           <Button disabled={!hasUnit} onClick={() => setFormOpen(true)}>
             <Plus className="h-4 w-4" /> New request
@@ -118,7 +119,7 @@ export default function TenantMaintenancePage() {
       />
 
       {!unit.isLoading && !hasUnit && (
-        <div className="mb-4 rounded-xl border border-accent-300 bg-accent-100 px-4 py-3 text-sm text-navy-700">
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-900">
           You can submit requests once an administrator assigns you a unit.
         </div>
       )}
@@ -140,35 +141,37 @@ export default function TenantMaintenancePage() {
         <>
           <div className="grid gap-5 md:grid-cols-2">
             {rows.map((request) => (
-              <article key={request._id} className="card p-5">
+              <article key={request._id} className="card-interactive flex flex-col p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-navy-50 text-navy-600"><Wrench className="h-5 w-5" /></div>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600 ring-1 ring-brand-500/15">
+                      <Wrench className="h-5 w-5" />
+                    </div>
                     <div>
-                      <h3 className="font-semibold capitalize text-navy-900">{request.category}</h3>
+                      <h3 className="font-display font-bold capitalize text-navy-900">{request.category}</h3>
                       <p className="text-xs text-navy-400">Submitted {formatDate(request.createdAt)}</p>
                     </div>
                   </div>
                   <Badge status={request.status} />
                 </div>
-                <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-navy-600">{request.description}</p>
+                <p className="mt-4 flex-1 whitespace-pre-wrap text-sm leading-relaxed text-navy-600">{request.description}</p>
                 {request.images?.length > 0 && (
                   <div className="mt-4 flex gap-2">
                     {request.images.map((src) => (
                       <a key={src} href={src} target="_blank" rel="noreferrer">
-                        <img src={src} alt="Issue" className="h-16 w-16 rounded-lg border border-navy-100 object-cover" />
+                        <img src={src} alt="Issue" className="h-16 w-16 rounded-xl border border-navy-200/70 object-cover shadow-2xs transition hover:opacity-80" />
                       </a>
                     ))}
                   </div>
                 )}
-                <div className="mt-4 flex items-center justify-between border-t border-navy-100 pt-3 text-xs text-navy-400">
+                <div className="mt-4 flex items-center justify-between border-t border-navy-100/80 pt-3 text-xs text-navy-400">
                   <span>
                     {request.status === "resolved" && request.resolvedAt
                       ? `Resolved ${formatDateTime(request.resolvedAt)}`
                       : `Updated ${formatDateTime(request.updatedAt)}`}
                   </span>
                   {request.status === "pending" && (
-                    <button onClick={() => setToDelete(request)} className="inline-flex items-center gap-1 font-medium text-red-500 hover:text-red-600">
+                    <button onClick={() => setToDelete(request)} className="inline-flex items-center gap-1 font-semibold text-rose-600 hover:text-rose-700">
                       <Trash2 className="h-3.5 w-3.5" /> Cancel request
                     </button>
                   )}

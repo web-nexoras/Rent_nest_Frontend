@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import { Clock, ShieldX } from "lucide-react";
+import { Clock, ShieldX, RefreshCw } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { Card } from "../components/ui/Layout.jsx";
 import Button from "../components/ui/Button.jsx";
@@ -34,25 +34,30 @@ export default function ApprovalGate() {
   };
 
   return (
-    <Card className="mx-auto mt-6 max-w-xl text-center">
+    <Card className="mx-auto mt-10 max-w-xl text-center">
       <div
-        className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl ${
-          rejected ? "bg-red-50 text-red-500" : "bg-accent-100 text-accent-600"
+        className={`mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl ring-1 ${
+          rejected
+            ? "bg-rose-50 text-rose-600 ring-rose-600/20"
+            : "bg-amber-50 text-amber-600 ring-amber-600/20"
         }`}
       >
         <Icon className="h-8 w-8" />
       </div>
-      <h2 className="text-xl font-bold text-navy-900">
-        {rejected ? "Your registration was not approved" : "Awaiting admin approval"}
+      <p className="text-[11px] font-bold uppercase tracking-widest text-brand-600">
+        {rejected ? "Access Restricted" : "Verification In Progress"}
+      </p>
+      <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-navy-900">
+        {rejected ? "Your registration was not approved" : "Awaiting administrator approval"}
       </h2>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-navy-500">
+      <p className="mx-auto mt-2.5 max-w-md text-sm leading-relaxed text-navy-500">
         {rejected
           ? "An administrator declined this account. Please contact your property manager for details."
           : "Your email is verified. An administrator needs to approve your account before you can view your unit, pay rent or submit maintenance requests."}
       </p>
       {!rejected && (
-        <Button className="mt-6" variant="outline" loading={checking} onClick={check}>
-          Check status
+        <Button className="mt-6" variant="primary" loading={checking} onClick={check}>
+          <RefreshCw className="h-4 w-4" /> Refresh approval status
         </Button>
       )}
     </Card>

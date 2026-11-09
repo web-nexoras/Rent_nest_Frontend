@@ -44,9 +44,9 @@ export default function NoticeDetailPage() {
     <div className="mx-auto max-w-3xl">
       <Link
         to="/notices"
-        className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-navy-500 hover:text-navy-900"
+        className="mb-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-navy-500 hover:text-brand-600"
       >
-        <ArrowLeft className="h-4 w-4" /> All notices
+        <ArrowLeft className="h-4 w-4" /> Back to notices
       </Link>
 
       {query.isLoading ? (
@@ -67,37 +67,37 @@ export default function NoticeDetailPage() {
       ) : (
         <>
           <Card>
-            <p className="text-xs font-medium uppercase tracking-wide text-brand-600">Notice</p>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-navy-900">{notice.title}</h1>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-brand-600">Official Announcement</p>
+            <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-navy-900">{notice.title}</h1>
             <p className="mt-1 text-xs text-navy-400">
               {formatDateTime(notice.createdAt)}
-              {notice.createdBy?.name ? ` · by ${notice.createdBy.name}` : ""}
+              {notice.createdBy?.name ? ` · Published by ${notice.createdBy.name}` : ""}
             </p>
             <p className="mt-5 whitespace-pre-wrap text-sm leading-relaxed text-navy-700">
               {notice.description}
             </p>
           </Card>
 
-          <Card title={`Comments (${notice.comments?.length || 0})`} className="mt-6">
+          <Card title={`Discussion (${notice.comments?.length || 0})`} subtitle="Resident & management comments" className="mt-6">
             {notice.comments?.length ? (
-              <ul className="space-y-5">
+              <ul className="space-y-4">
                 {notice.comments.map((comment) => {
                   const authorId = comment.tenant?._id || comment.tenant;
                   const canDelete = isAdmin || authorId === user?._id;
                   return (
                     <li key={comment._id} className="flex gap-3">
                       <Avatar name={comment.tenant?.name || "User"} size="sm" />
-                      <div className="min-w-0 flex-1 rounded-2xl rounded-tl-sm bg-navy-50 px-4 py-3">
+                      <div className="min-w-0 flex-1 rounded-2xl rounded-tl-sm bg-surface-subtle px-4 py-3">
                         <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm font-semibold text-navy-800">
+                          <p className="text-xs font-bold text-navy-900">
                             {comment.tenant?.name || "Deleted user"}
                           </p>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-navy-400">{formatDateTime(comment.createdAt)}</span>
+                            <span className="text-[11px] text-navy-400">{formatDateTime(comment.createdAt)}</span>
                             {canDelete && (
                               <button
                                 onClick={() => setCommentToDelete(comment)}
-                                className="text-navy-300 transition hover:text-red-500"
+                                className="text-navy-300 transition hover:text-rose-600"
                                 aria-label="Delete comment"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -118,7 +118,7 @@ export default function NoticeDetailPage() {
             )}
 
             {isApproved ? (
-              <form onSubmit={submit} className="mt-6 border-t border-navy-100 pt-5">
+              <form onSubmit={submit} className="mt-6 border-t border-navy-100/80 pt-5">
                 <Textarea
                   label="Add a comment"
                   rows={3}
@@ -133,7 +133,7 @@ export default function NoticeDetailPage() {
                 </div>
               </form>
             ) : (
-              <p className="mt-6 border-t border-navy-100 pt-4 text-sm text-navy-400">
+              <p className="mt-6 border-t border-navy-100/80 pt-4 text-sm text-navy-400">
                 Commenting is available once your account is approved.
               </p>
             )}

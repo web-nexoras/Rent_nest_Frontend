@@ -15,7 +15,7 @@ import {
   UserMinus,
   UserPlus,
 } from "lucide-react";
-import { PageHeader, Card } from "../../../components/ui/Layout.jsx";
+import { PageHeader, Card, Avatar } from "../../../components/ui/Layout.jsx";
 import Button from "../../../components/ui/Button.jsx";
 import Badge from "../../../components/ui/Badge.jsx";
 import Modal from "../../../components/ui/Modal.jsx";
@@ -35,12 +35,11 @@ import { formatMoney, toFormData } from "../../../lib/utils.js";
 
 const LIMIT = 9;
 const TABS = [
-  { value: "", label: "All" },
+  { value: "", label: "All Units" },
   { value: "vacant", label: "Vacant" },
   { value: "occupied", label: "Occupied" },
 ];
 
-// Optional numeric fields arrive as strings from inputs. Empty = leave unset.
 const optionalNumber = (label, { min = 0, max, integer = false } = {}) =>
   z
     .string()
@@ -108,7 +107,8 @@ function UnitFormModal({ open, unit, onClose }) {
       open={open}
       onClose={onClose}
       size="lg"
-      title={unit ? `Edit unit ${unit.unitNumber}` : "Add a new unit"}
+      title={unit ? `Edit Unit ${unit.unitNumber}` : "Add a new rental unit"}
+      description="Configure unit specifications, monthly rent, and gallery photos."
       footer={
         <>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
@@ -127,7 +127,7 @@ function UnitFormModal({ open, unit, onClose }) {
           <Input label="Bedrooms" type="number" min="0" error={errors.bedrooms?.message} {...register("bedrooms")} />
           <Input label="Size (sqft)" type="number" min="0" error={errors.sizeSqft?.message} {...register("sizeSqft")} />
         </div>
-        <Textarea label="Description" rows={3} error={errors.description?.message} {...register("description")} />
+        <Textarea label="Description" rows={3} placeholder="Balcony, south-facing, parking included…" error={errors.description?.message} {...register("description")} />
         <ImagePicker
           key={pickerKey}
           label={unit ? "Replace photos (optional)" : "Photos"}
@@ -136,7 +136,7 @@ function UnitFormModal({ open, unit, onClose }) {
           onChange={setImages}
         />
         {unit && images.length > 0 && (
-          <p className="text-xs text-accent-600">New photos will replace all existing photos for this unit.</p>
+          <p className="text-xs font-medium text-amber-600">New photos will replace all existing photos for this unit.</p>
         )}
       </form>
     </Modal>
@@ -146,7 +146,6 @@ function UnitFormModal({ open, unit, onClose }) {
 function AssignModal({ unit, onClose }) {
   const [tenantId, setTenantId] = useState("");
 
-  // Backend assignTenant requires an approved, verified, active tenant with no unit.
   const tenants = useQuery({
     queryKey: ["admin", "tenants", "assignable"],
     queryFn: () => adminService.getTenants({ status: "approved", limit: 50 }),
@@ -166,11 +165,12 @@ function AssignModal({ unit, onClose }) {
       open={Boolean(unit)}
       onClose={onClose}
       size="sm"
-      title={`Assign tenant to unit ${unit?.unitNumber || ""}`}
+      title={`Assign tenant to Unit ${unit?.unitNumber || ""}`}
+      description={unit ? `Monthly rent: ${formatMoney(unit.rentAmount)}` : ""}
       footer={
         <>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button variant="secondary" disabled={!tenantId} loading={assign.isPending} onClick={() => assign.mutate()}>
+          <Button variant="primary" disabled={!tenantId} loading={assign.isPending} onClick={() => assign.mutate()}>
             Assign tenant
           </Button>
         </>
@@ -205,7 +205,7 @@ export default function AdminUnitsPage() {
   const debounced = useDebounce(search);
   const [form, setForm] = useState({ open: false, unit: null });
   const [assigning, setAssigning] = useState(null);
-  const [confirm, setConfirm] = useState(null); // { type: 'delete' | 'unassign', unit }
+  const [confirm, setConfirm] = useState(null);
 
   useEffect(() => setPage(1), [status, debounced]);
 
@@ -225,8 +225,9 @@ export default function AdminUnitsPage() {
   return (
     <>
       <PageHeader
-        title="Units"
-        description="Manage rental units and their tenants."
+        eyebrow="Property Portfolio"
+        title="Rental Units"
+        description="Manage unit inventory, monthly rent schedules, and resident assignments."
         actions={
           <Button onClick={() => setForm({ open: true, unit: null })}>
             <Plus className="h-4 w-4" /> Add unit
@@ -243,7 +244,7 @@ export default function AdminUnitsPage() {
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
             <div key={index} className="card overflow-hidden">
-              <Skeleton className="h-40 w-full rounded-none" />
+              <Skeleton className="h-44 w-full rounded-none" />
               <div className="space-y-3 p-5">
                 <Skeleton className="h-5 w-1/2" />
                 <Skeleton className="h-4 w-3/4" />
@@ -268,8 +269,8 @@ export default function AdminUnitsPage() {
         <>
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {units.map((unit) => (
-              <article key={unit._id} className="card group overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-pop">
-                <div className="relative h-40 overflow-hidden bg-gradient-to-br from-navy-100 to-navy-50">
+              <article key={unit._id} className="card-interactive group flex flex-col overflow-hidden">
+                <div className="relative h-44 overflow-hidden bg-gradient-to-br from-navy-900 via-navy-800 to-brand-950">
                   {unit.images?.[0] ? (
                     <img
                       src={unit.images[0]}
@@ -278,15 +279,24 @@ export default function AdminUnitsPage() {
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-navy-200">
-                      <Building2 className="h-12 w-12" />
+                    <div className="flex h-full flex-col items-center justify-center gap-2 text-navy-500">
+                      <Building2 className="h-10 w-10 text-brand-400/60" />
+                      <span className="text-[11px] font-semibold uppercase tracking-widest text-navy-400">
+                        Unit {unit.unitNumber}
+                      </span>
                     </div>
                   )}
-                  <div className="absolute left-3 top-3"><Badge status={unit.status} className="bg-white/90 backdrop-blur" /></div>
-                  <div className="absolute right-3 top-3">
+                  <div className="absolute inset-0 bg-gradient-to-t from-navy-950/60 via-transparent to-transparent" />
+                  <div className="absolute left-3.5 top-3.5">
+                    <Badge status={unit.status} className="bg-white/95 shadow-xs backdrop-blur" />
+                  </div>
+                  <div className="absolute right-3.5 top-3.5">
                     <Dropdown
                       trigger={() => (
-                        <button className="rounded-lg bg-white/90 p-1.5 text-navy-700 shadow backdrop-blur hover:bg-white" aria-label={`Actions for unit ${unit.unitNumber}`}>
+                        <button
+                          className="rounded-xl bg-white/95 p-1.5 text-navy-700 shadow-sm backdrop-blur transition hover:bg-white"
+                          aria-label={`Actions for unit ${unit.unitNumber}`}
+                        >
                           <MoreVertical className="h-4 w-4" />
                         </button>
                       )}
@@ -301,32 +311,62 @@ export default function AdminUnitsPage() {
                     </Dropdown>
                   </div>
                 </div>
-                <div className="p-5">
+
+                <div className="flex flex-1 flex-col p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-lg font-bold text-navy-900">Unit {unit.unitNumber}</h3>
-                      <p className="text-xs text-navy-400">{unit.floor ? `Floor ${unit.floor}` : "Floor not set"}</p>
+                      <h3 className="font-display text-lg font-bold text-navy-900">Unit {unit.unitNumber}</h3>
+                      <p className="text-xs font-medium text-navy-400">{unit.floor ? `Floor ${unit.floor}` : "Floor not set"}</p>
                     </div>
-                    <p className="text-right">
-                      <span className="text-lg font-bold text-brand-600">{formatMoney(unit.rentAmount)}</span>
-                      <span className="block text-xs text-navy-400">per month</span>
-                    </p>
+                    <div className="text-right">
+                      <p className="font-display text-lg font-bold tabular text-brand-600">{formatMoney(unit.rentAmount)}</p>
+                      <p className="text-[11px] font-medium text-navy-400">per month</p>
+                    </div>
                   </div>
-                  <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-navy-500">
-                    <span className="inline-flex items-center gap-1.5"><BedDouble className="h-3.5 w-3.5" />{unit.bedrooms ?? "—"} bed</span>
-                    <span className="inline-flex items-center gap-1.5"><Ruler className="h-3.5 w-3.5" />{unit.sizeSqft ? `${unit.sizeSqft} sqft` : "—"}</span>
-                    <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5" />Due day {unit.rentDueDay}</span>
+
+                  <div className="mt-4 flex flex-wrap gap-2 text-xs font-medium text-navy-600">
+                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-surface-subtle px-2.5 py-1">
+                      <BedDouble className="h-3.5 w-3.5 text-navy-400" />
+                      {unit.bedrooms ?? "—"} bed
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-surface-subtle px-2.5 py-1">
+                      <Ruler className="h-3.5 w-3.5 text-navy-400" />
+                      {unit.sizeSqft ? `${unit.sizeSqft} sqft` : "—"}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-surface-subtle px-2.5 py-1">
+                      <CalendarDays className="h-3.5 w-3.5 text-navy-400" />
+                      Due day {unit.rentDueDay}
+                    </span>
                   </div>
-                  <div className="mt-4 border-t border-navy-100 pt-3 text-sm">
+
+                  <div className="mt-auto border-t border-navy-100/80 pt-4">
                     {unit.assignedTenant ? (
-                      <div>
-                        <p className="font-semibold text-navy-800">{unit.assignedTenant.name}</p>
-                        <p className="text-xs text-navy-400">{unit.assignedTenant.phone}</p>
+                      <div className="flex items-center justify-between gap-2 pt-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <Avatar name={unit.assignedTenant.name} size="sm" />
+                          <div className="min-w-0">
+                            <p className="truncate text-xs font-bold text-navy-900">{unit.assignedTenant.name}</p>
+                            <p className="truncate text-[11px] text-navy-400">{unit.assignedTenant.phone}</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setConfirm({ type: "unassign", unit })}
+                          className="text-xs font-semibold text-navy-400 hover:text-rose-600"
+                        >
+                          Unassign
+                        </button>
                       </div>
                     ) : (
-                      <button onClick={() => setAssigning(unit)} className="font-semibold text-brand-600 hover:text-brand-700">
-                        + Assign a tenant
-                      </button>
+                      <div className="pt-3">
+                        <Button
+                          variant="subtle"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => setAssigning(unit)}
+                        >
+                          <UserPlus className="h-3.5 w-3.5" /> Assign a tenant
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </div>

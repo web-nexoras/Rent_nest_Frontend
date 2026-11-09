@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Eye, Trash2, Wrench } from "lucide-react";
-import { PageHeader } from "../../../components/ui/Layout.jsx";
+import { PageHeader, Avatar } from "../../../components/ui/Layout.jsx";
 import Button from "../../../components/ui/Button.jsx";
 import Badge from "../../../components/ui/Badge.jsx";
 import DataTable from "../../../components/ui/DataTable.jsx";
@@ -17,9 +17,9 @@ import { formatDate, formatDateTime } from "../../../lib/utils.js";
 
 const LIMIT = 10;
 const STATUS_TABS = [
-  { value: "", label: "All" },
+  { value: "", label: "All Tickets" },
   { value: "pending", label: "Pending" },
-  { value: "in-progress", label: "In progress" },
+  { value: "in-progress", label: "In Progress" },
   { value: "resolved", label: "Resolved" },
 ];
 const CATEGORIES = ["plumbing", "electrical", "gas", "other"];
@@ -39,11 +39,11 @@ function DetailModal({ request, onClose, onDelete }) {
       open
       onClose={onClose}
       size="lg"
-      title={`${request.category[0].toUpperCase()}${request.category.slice(1)} request`}
+      title={`${request.category[0].toUpperCase()}${request.category.slice(1)} maintenance ticket`}
       description={`Unit ${request.unit?.unitNumber || "—"} · submitted ${formatDateTime(request.createdAt)}`}
       footer={
         <>
-          <Button variant="ghost" className="mr-auto text-red-500 hover:bg-red-50" onClick={() => onDelete(request)}>
+          <Button variant="ghost" className="mr-auto text-rose-600 hover:bg-rose-50" onClick={() => onDelete(request)}>
             <Trash2 className="h-4 w-4" /> Delete
           </Button>
           <Button variant="outline" onClick={onClose}>Close</Button>
@@ -54,35 +54,35 @@ function DetailModal({ request, onClose, onDelete }) {
       }
     >
       <div className="space-y-5">
-        <div className="grid gap-4 text-sm sm:grid-cols-2">
+        <div className="grid gap-4 rounded-xl bg-surface-subtle p-4 text-sm sm:grid-cols-2">
           <div>
-            <p className="text-navy-400">Tenant</p>
-            <p className="font-semibold text-navy-900">{request.tenant?.name || "Removed tenant"}</p>
-            <p className="text-navy-500">{request.tenant?.phone}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-navy-400">Resident</p>
+            <p className="mt-1 font-semibold text-navy-900">{request.tenant?.name || "Removed tenant"}</p>
+            <p className="text-xs text-navy-500">{request.tenant?.phone}</p>
           </div>
           <div>
-            <p className="text-navy-400">Current status</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-navy-400">Current status</p>
             <div className="mt-1"><Badge status={request.status} /></div>
             {request.resolvedAt && <p className="mt-1 text-xs text-navy-400">Resolved {formatDate(request.resolvedAt)}</p>}
           </div>
         </div>
         <div>
-          <p className="text-sm text-navy-400">Description</p>
-          <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-navy-700">{request.description}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-navy-400">Issue Description</p>
+          <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-navy-700">{request.description}</p>
         </div>
         {request.images?.length > 0 && (
           <div>
-            <p className="mb-2 text-sm text-navy-400">Photos</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-navy-400">Attached Photos</p>
             <div className="flex flex-wrap gap-3">
               {request.images.map((src) => (
                 <a key={src} href={src} target="_blank" rel="noreferrer">
-                  <img src={src} alt="Maintenance issue" className="h-24 w-24 rounded-xl border border-navy-100 object-cover transition hover:opacity-80" />
+                  <img src={src} alt="Maintenance issue" className="h-24 w-24 rounded-xl border border-navy-200/70 object-cover shadow-xs transition hover:opacity-80" />
                 </a>
               ))}
             </div>
           </div>
         )}
-        <Select label="Change status" value={status} onChange={(event) => setStatus(event.target.value)}>
+        <Select label="Update ticket status" value={status} onChange={(event) => setStatus(event.target.value)}>
           <option value="pending">Pending</option>
           <option value="in-progress">In progress</option>
           <option value="resolved">Resolved</option>
@@ -102,7 +102,6 @@ export default function AdminMaintenancePage() {
 
   useEffect(() => setPage(1), [status, category, search]);
 
-  // The backend filters by status/category but doesn't paginate, so we page on the client.
   const query = useQuery({
     queryKey: ["maintenance", "all", { status, category }],
     queryFn: () => maintenanceService.list({ status: status || undefined, category: category || undefined }),
@@ -132,20 +131,31 @@ export default function AdminMaintenancePage() {
   const columns = [
     {
       key: "tenant",
-      header: "Tenant",
+      header: "Resident & Unit",
       render: (row) => (
-        <div>
-          <p className="font-semibold text-navy-900">{row.tenant?.name || "Removed tenant"}</p>
-          <p className="text-xs text-navy-400">Unit {row.unit?.unitNumber || "—"}</p>
+        <div className="flex items-center gap-3">
+          <Avatar name={row.tenant?.name || "?"} size="sm" />
+          <div>
+            <p className="font-semibold text-navy-900">{row.tenant?.name || "Removed tenant"}</p>
+            <p className="text-xs text-navy-400">Unit {row.unit?.unitNumber || "—"}</p>
+          </div>
         </div>
       ),
     },
-    { key: "category", header: "Category", className: "capitalize" },
+    {
+      key: "category",
+      header: "Category",
+      render: (row) => (
+        <span className="inline-flex rounded-lg bg-surface-subtle px-2.5 py-1 text-xs font-semibold capitalize text-navy-700">
+          {row.category}
+        </span>
+      ),
+    },
     {
       key: "description",
-      header: "Issue",
+      header: "Issue Summary",
       hideOn: "md",
-      render: (row) => <p className="max-w-xs truncate">{row.description}</p>,
+      render: (row) => <p className="max-w-xs truncate text-navy-600">{row.description}</p>,
     },
     { key: "createdAt", header: "Submitted", hideOn: "lg", render: (row) => formatDate(row.createdAt) },
     { key: "status", header: "Status", render: (row) => <Badge status={row.status} /> },
@@ -163,7 +173,11 @@ export default function AdminMaintenancePage() {
 
   return (
     <>
-      <PageHeader title="Maintenance" description="Track and resolve maintenance requests from tenants." />
+      <PageHeader
+        eyebrow="Operations"
+        title="Maintenance Desk"
+        description="Track, triage, and resolve repair requests across all units."
+      />
 
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <FilterTabs value={status} onChange={setStatus} options={STATUS_TABS} />
@@ -172,7 +186,7 @@ export default function AdminMaintenancePage() {
             value={category}
             onChange={(event) => setCategory(event.target.value)}
             aria-label="Filter by category"
-            className="h-10 rounded-xl border border-navy-200 bg-white px-3 text-sm capitalize focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            className="h-10 rounded-xl border border-navy-200/80 bg-white px-3 text-sm capitalize text-navy-900 shadow-2xs focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/10"
           >
             <option value="">All categories</option>
             {CATEGORIES.map((item) => <option key={item} value={item}>{item}</option>)}

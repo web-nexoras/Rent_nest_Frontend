@@ -8,22 +8,22 @@ export default function Pagination({ page, totalPages, total, limit, onPageChang
   const to = Math.min(page * limit, total);
 
   return (
-    <div className="flex flex-col items-center justify-between gap-3 border-t border-navy-100 px-4 py-3 sm:flex-row">
-      <p className="text-sm text-navy-400">
-        Showing <span className="font-medium text-navy-700">{from}</span>–
-        <span className="font-medium text-navy-700">{to}</span> of{" "}
-        <span className="font-medium text-navy-700">{total}</span>
+    <div className="flex flex-col items-center justify-between gap-3 border-t border-navy-100 bg-navy-50/40 px-5 py-3 sm:flex-row">
+      <p className="text-xs text-navy-500">
+        Showing <span className="tabular font-semibold text-navy-800">{from}</span>–
+        <span className="tabular font-semibold text-navy-800">{to}</span> of{" "}
+        <span className="tabular font-semibold text-navy-800">{total}</span> results
       </p>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         <Button
           variant="outline"
           size="sm"
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
         >
-          <ChevronLeft className="h-4 w-4" /> Prev
+          <ChevronLeft className="h-3.5 w-3.5" /> Prev
         </Button>
-        <span className="min-w-[4.5rem] text-center text-sm text-navy-600">
+        <span className="tabular min-w-[4.5rem] rounded-lg bg-white px-2.5 py-1 text-center text-xs font-semibold text-navy-700 ring-1 ring-navy-200/80">
           {page} / {pages}
         </span>
         <Button
@@ -32,7 +32,7 @@ export default function Pagination({ page, totalPages, total, limit, onPageChang
           disabled={page >= pages}
           onClick={() => onPageChange(page + 1)}
         >
-          Next <ChevronRight className="h-4 w-4" />
+          Next <ChevronRight className="h-3.5 w-3.5" />
         </Button>
       </div>
     </div>

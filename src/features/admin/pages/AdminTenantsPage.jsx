@@ -21,7 +21,7 @@ import { formatDate } from "../../../lib/utils.js";
 
 const LIMIT = 10;
 const TABS = [
-  { value: "", label: "All" },
+  { value: "", label: "All Tenants" },
   { value: "pending", label: "Pending" },
   { value: "approved", label: "Approved" },
   { value: "rejected", label: "Rejected" },
@@ -30,7 +30,6 @@ const TABS = [
 function ApproveModal({ tenant, onClose }) {
   const [unitId, setUnitId] = useState("");
 
-  // Only vacant units can be assigned (backend returns 409 for occupied ones).
   const units = useQuery({
     queryKey: ["units", "vacant-picker"],
     queryFn: () => unitService.list({ status: "vacant", limit: 50 }),
@@ -48,19 +47,19 @@ function ApproveModal({ tenant, onClose }) {
     <Modal
       open={Boolean(tenant)}
       onClose={onClose}
-      title="Approve tenant"
+      title="Approve tenant registration"
       description={tenant ? `${tenant.name} · ${tenant.email}` : ""}
       footer={
         <>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button variant="secondary" loading={approve.isPending} onClick={() => approve.mutate()}>
-            <CheckCircle2 className="h-4 w-4" /> {unitId ? "Approve & assign unit" : "Approve"}
+          <Button variant="primary" loading={approve.isPending} onClick={() => approve.mutate()}>
+            <CheckCircle2 className="h-4 w-4" /> {unitId ? "Approve & assign unit" : "Approve tenant"}
           </Button>
         </>
       }
     >
       <Select
-        label="Assign a unit (optional)"
+        label="Assign a vacant unit (optional)"
         value={unitId}
         onChange={(event) => setUnitId(event.target.value)}
         hint={
@@ -76,7 +75,7 @@ function ApproveModal({ tenant, onClose }) {
           </option>
         ))}
       </Select>
-      {units.isError && <p className="mt-2 text-xs text-red-500">Couldn't load vacant units.</p>}
+      {units.isError && <p className="mt-2 text-xs text-rose-600">Couldn't load vacant units.</p>}
     </Modal>
   );
 }
@@ -88,7 +87,7 @@ export default function AdminTenantsPage() {
   const [search, setSearch] = useState("");
   const debounced = useDebounce(search);
   const [approving, setApproving] = useState(null);
-  const [confirm, setConfirm] = useState(null); // { type: 'reject' | 'remove' | 'toggle', tenant }
+  const [confirm, setConfirm] = useState(null);
 
   useEffect(() => setPage(1), [status, debounced]);
 
@@ -124,7 +123,14 @@ export default function AdminTenantsPage() {
       key: "unit",
       header: "Unit",
       hideOn: "md",
-      render: (row) => (row.assignedUnit ? `Unit ${row.assignedUnit.unitNumber}` : <span className="text-navy-300">Not assigned</span>),
+      render: (row) =>
+        row.assignedUnit ? (
+          <span className="inline-flex items-center rounded-lg bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+            Unit {row.assignedUnit.unitNumber}
+          </span>
+        ) : (
+          <span className="text-xs text-navy-300">Unassigned</span>
+        ),
     },
     { key: "approvalStatus", header: "Approval", render: (row) => <Badge status={row.approvalStatus} /> },
     {
@@ -193,7 +199,11 @@ export default function AdminTenantsPage() {
 
   return (
     <>
-      <PageHeader title="Tenants" description="Review registrations, approve tenants and manage accounts." />
+      <PageHeader
+        eyebrow="Property Portfolio"
+        title="Tenants Directory"
+        description="Review resident registrations, approve onboarding, and manage active tenancies."
+      />
 
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <FilterTabs
@@ -236,7 +246,7 @@ export default function AdminTenantsPage() {
         title={confirmConfig.title}
         message={confirmConfig.message}
         confirmLabel={confirmConfig.label}
-        variant={confirm?.type === "toggle" && !confirm.tenant.isActive ? "secondary" : "danger"}
+        variant={confirm?.type === "toggle" && !confirm.tenant.isActive ? "primary" : "danger"}
       />
     </>
   );

@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Phone, User } from "lucide-react";
+import { Mail, Phone, User, ArrowRight } from "lucide-react";
 import { Input } from "../../../components/ui/Input.jsx";
 import { PasswordInput } from "../../../components/ui/PasswordInput.jsx";
 import Button from "../../../components/ui/Button.jsx";
@@ -41,12 +41,15 @@ export default function SignupPage() {
 
   return (
     <div className="animate-fade-in">
-      <h1 className="text-3xl font-bold tracking-tight text-navy-900">Create your account</h1>
-      <p className="mt-2 text-sm text-navy-400">
-        Register as a tenant. An admin will approve your account after you verify your email.
+      <p className="text-[11px] font-bold uppercase tracking-widest text-brand-600">Tenant Onboarding</p>
+      <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-navy-900 sm:text-3xl">
+        Create your account
+      </h1>
+      <p className="mt-1.5 text-sm text-navy-500">
+        Register as a resident. An administrator will approve your account after email verification.
       </p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4" noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-7 space-y-4" noValidate>
         <Input
           label="Full name"
           icon={User}
@@ -56,7 +59,7 @@ export default function SignupPage() {
           {...register("name")}
         />
         <Input
-          label="Email"
+          label="Email address"
           type="email"
           icon={Mail}
           autoComplete="email"
@@ -65,7 +68,7 @@ export default function SignupPage() {
           {...register("email")}
         />
         <Input
-          label="Phone"
+          label="Phone number"
           type="tel"
           icon={Phone}
           autoComplete="tel"
@@ -91,11 +94,11 @@ export default function SignupPage() {
         </div>
 
         <Button type="submit" size="lg" className="w-full" loading={isSubmitting}>
-          Create account
+          Create account <ArrowRight className="h-4 w-4" />
         </Button>
       </form>
 
-      <p className="mt-8 text-center text-sm text-navy-400">
+      <p className="mt-7 text-center text-sm text-navy-500">
         Already registered?{" "}
         <Link to="/login" className="font-semibold text-brand-600 hover:text-brand-700">
           Sign in

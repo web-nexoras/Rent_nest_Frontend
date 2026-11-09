@@ -1,52 +1,69 @@
-import { useState } from "react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { formatMoney, formatMonth } from "../../lib/utils.js";
 
-/** Lightweight SVG/CSS bar chart (no chart library). data: [{ month, total, count }] */
-export default function RevenueChart({ data = [] }) {
-  const [active, setActive] = useState(null);
-  const max = Math.max(...data.map((item) => item.total), 1);
+function CustomTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  const row = payload[0].payload;
+  return (
+    <div className="rounded-xl border border-navy-200/80 bg-navy-900 px-3.5 py-2.5 text-xs text-white shadow-pop">
+      <p className="font-semibold text-navy-200">{formatMonth(label)}</p>
+      <p className="tabular mt-1 text-base font-bold text-white">{formatMoney(row.total)}</p>
+      <p className="mt-0.5 text-[11px] text-navy-300">
+        {row.count} verified payment{row.count === 1 ? "" : "s"}
+      </p>
+    </div>
+  );
+}
 
+/** Interactive Recharts area chart for verified monthly revenue. data: [{ month, total, count }] */
+export default function RevenueChart({ data = [] }) {
   if (!data.length) return null;
 
   return (
-    <div>
-      <div className="flex h-56 items-end gap-2 sm:gap-4" role="img" aria-label="Verified revenue by month">
-        {data.map((item, index) => {
-          const height = Math.max((item.total / max) * 100, 3);
-          const isActive = active === index;
-          return (
-            <div
-              key={item.month}
-              className="group relative flex h-full flex-1 flex-col items-center justify-end"
-              onMouseEnter={() => setActive(index)}
-              onMouseLeave={() => setActive(null)}
-              onFocus={() => setActive(index)}
-              onBlur={() => setActive(null)}
-              tabIndex={0}
-            >
-              {isActive && (
-                <div className="absolute -top-2 z-10 -translate-y-full whitespace-nowrap rounded-lg bg-navy-900 px-2.5 py-1.5 text-xs text-white shadow-pop">
-                  <p className="font-semibold">{formatMoney(item.total)}</p>
-                  <p className="text-navy-300">
-                    {item.count} payment{item.count === 1 ? "" : "s"}
-                  </p>
-                </div>
-              )}
-              <div
-                className="w-full max-w-[3.5rem] origin-bottom rounded-t-lg bg-gradient-to-t from-brand-600 to-brand-300 transition-all duration-700 ease-out group-hover:from-navy-800 group-hover:to-navy-500"
-                style={{ height: `${height}%` }}
-              />
-            </div>
-          );
-        })}
-      </div>
-      <div className="mt-2 flex gap-2 sm:gap-4">
-        {data.map((item) => (
-          <p key={item.month} className="flex-1 text-center text-xs text-navy-400">
-            {formatMonth(item.month)}
-          </p>
-        ))}
-      </div>
+    <div className="h-64 w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id="rnRevenueFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#6366F1" stopOpacity={0.32} />
+              <stop offset="95%" stopColor="#6366F1" stopOpacity={0.0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+          <XAxis
+            dataKey="month"
+            tickFormatter={formatMonth}
+            tickLine={false}
+            axisLine={false}
+            tick={{ fill: "#64748B", fontSize: 12 }}
+            dy={6}
+          />
+          <YAxis
+            tickFormatter={(v) => (v >= 1000 ? `৳${(v / 1000).toFixed(0)}k` : `৳${v}`)}
+            tickLine={false}
+            axisLine={false}
+            tick={{ fill: "#64748B", fontSize: 12 }}
+            width={56}
+          />
+          <Tooltip content={<CustomTooltip />} cursor={{ stroke: "#6366F1", strokeWidth: 1, strokeDasharray: "4 4" }} />
+          <Area
+            type="monotone"
+            dataKey="total"
+            stroke="#4F46E5"
+            strokeWidth={2.5}
+            fill="url(#rnRevenueFill)"
+            activeDot={{ r: 5, strokeWidth: 2, stroke: "#ffffff", fill: "#4F46E5" }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
   );
 }

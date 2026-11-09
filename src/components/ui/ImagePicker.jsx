@@ -50,20 +50,20 @@ export default function ImagePicker({ label, max = 3, multiple = true, onChange,
 
   return (
     <div className="space-y-1.5">
-      {label && <p className="text-sm font-medium text-navy-800">{label}</p>}
+      {label && <p className="text-xs font-semibold uppercase tracking-wider text-navy-600">{label}</p>}
       <div className="flex flex-wrap gap-3">
         {existing.length > 0 &&
           files.length === 0 &&
           existing.map((src) => (
-            <img key={src} src={src} alt="" className="h-20 w-20 rounded-xl border border-navy-100 object-cover" />
+            <img key={src} src={src} alt="" className="h-20 w-20 rounded-xl border border-navy-200/70 object-cover shadow-xs" />
           ))}
         {previews.map((src, index) => (
           <div key={src} className="relative">
-            <img src={src} alt="" className="h-20 w-20 rounded-xl border border-navy-100 object-cover" />
+            <img src={src} alt="" className="h-20 w-20 rounded-xl border border-navy-200/70 object-cover shadow-xs" />
             <button
               type="button"
               onClick={() => remove(index)}
-              className="absolute -right-2 -top-2 rounded-full bg-navy-900 p-1 text-white shadow"
+              className="absolute -right-1.5 -top-1.5 rounded-full bg-navy-900 p-1 text-white shadow-sm transition hover:bg-rose-600"
               aria-label="Remove image"
             >
               <X className="h-3 w-3" />
@@ -74,10 +74,10 @@ export default function ImagePicker({ label, max = 3, multiple = true, onChange,
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="flex h-20 w-20 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-navy-200 text-navy-300 transition hover:border-brand-500 hover:text-brand-500"
+            className="flex h-20 w-20 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-navy-200/80 bg-surface-muted/60 text-navy-400 transition hover:border-brand-500 hover:bg-brand-50/40 hover:text-brand-600"
           >
             <ImagePlus className="h-5 w-5" />
-            <span className="text-[10px] font-medium">Add</span>
+            <span className="text-[11px] font-semibold">Add</span>
           </button>
         )}
       </div>
@@ -90,7 +90,7 @@ export default function ImagePicker({ label, max = 3, multiple = true, onChange,
         className="hidden"
       />
       <p className="text-xs text-navy-400">JPEG, PNG or WEBP · max 2MB each{multiple ? ` · up to ${max}` : ""}</p>
-      {shownError && <p className="text-xs font-medium text-red-500">{shownError}</p>}
+      {shownError && <p className="text-xs font-medium text-rose-600">{shownError}</p>}
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail } from "lucide-react";
+import { Mail, ArrowRight } from "lucide-react";
 import { Input } from "../../../components/ui/Input.jsx";
 import { PasswordInput } from "../../../components/ui/PasswordInput.jsx";
 import Button from "../../../components/ui/Button.jsx";
@@ -47,12 +47,15 @@ export default function LoginPage() {
 
   return (
     <div className="animate-fade-in">
-      <h1 className="text-3xl font-bold tracking-tight text-navy-900">Sign in</h1>
-      <p className="mt-2 text-sm text-navy-400">Welcome back — enter your details to continue.</p>
+      <p className="text-[11px] font-bold uppercase tracking-widest text-brand-600">Welcome back</p>
+      <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-navy-900 sm:text-3xl">
+        Sign in to Rent Nest
+      </h1>
+      <p className="mt-1.5 text-sm text-navy-500">Enter your credentials to access your workspace.</p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5" noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-7 space-y-5" noValidate>
         <Input
-          label="Email"
+          label="Email address"
           type="email"
           autoComplete="email"
           icon={Mail}
@@ -69,18 +72,18 @@ export default function LoginPage() {
         />
 
         <div className="flex justify-end">
-          <Link to="/forgot-password" className="text-sm font-medium text-brand-600 hover:text-brand-700">
+          <Link to="/forgot-password" className="text-xs font-semibold text-brand-600 hover:text-brand-700">
             Forgot password?
           </Link>
         </div>
 
         {needsVerification && (
-          <div className="rounded-xl border border-accent-300 bg-accent-100 p-3 text-sm text-navy-700">
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-900">
             Your email isn't verified yet.{" "}
             <Link
               to="/verify-otp"
               state={{ email: getValues("email") }}
-              className="font-semibold text-brand-700 underline"
+              className="font-bold text-brand-700 underline"
             >
               Enter your verification code
             </Link>
@@ -88,11 +91,11 @@ export default function LoginPage() {
         )}
 
         <Button type="submit" size="lg" className="w-full" loading={isSubmitting}>
-          Sign in
+          Sign in <ArrowRight className="h-4 w-4" />
         </Button>
       </form>
 
-      <p className="mt-8 text-center text-sm text-navy-400">
+      <p className="mt-7 text-center text-sm text-navy-500">
         New tenant?{" "}
         <Link to="/signup" className="font-semibold text-brand-600 hover:text-brand-700">
           Create an account

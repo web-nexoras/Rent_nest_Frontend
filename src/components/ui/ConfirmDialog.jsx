@@ -1,4 +1,4 @@
-import { TriangleAlert } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 import Modal from "./Modal.jsx";
 import Button from "./Button.jsx";
 
@@ -29,11 +29,17 @@ export default function ConfirmDialog({
         </>
       }
     >
-      <div className="flex gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-500">
-          <TriangleAlert className="h-5 w-5" />
+      <div className="flex items-start gap-3.5">
+        <div
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ring-1 ${
+            variant === "danger"
+              ? "bg-rose-500/10 text-rose-600 ring-rose-500/20"
+              : "bg-brand-500/10 text-brand-600 ring-brand-500/20"
+          }`}
+        >
+          <ShieldAlert className="h-5 w-5" />
         </div>
-        <p className="text-sm leading-relaxed text-navy-600">{message}</p>
+        <p className="pt-0.5 text-sm leading-relaxed text-navy-600">{message}</p>
       </div>
     </Modal>
   );

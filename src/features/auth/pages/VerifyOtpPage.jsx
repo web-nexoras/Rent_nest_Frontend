@@ -32,7 +32,6 @@ export default function VerifyOtpPage() {
     return () => clearTimeout(timer);
   }, [cooldown]);
 
-  // The backend identifies the user by email, so we need it from the previous step.
   if (!email) return <Navigate to="/signup" replace />;
 
   const onSubmit = async ({ otp }) => {
@@ -60,23 +59,25 @@ export default function VerifyOtpPage() {
 
   return (
     <div className="animate-fade-in">
-      <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
-        <MailCheck className="h-7 w-7" />
+      <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 ring-1 ring-brand-500/20">
+        <MailCheck className="h-6 w-6" />
       </div>
-      <h1 className="text-3xl font-bold tracking-tight text-navy-900">Verify your email</h1>
-      <p className="mt-2 text-sm text-navy-400">
-        We sent a 4-digit code to <span className="font-semibold text-navy-700">{email}</span>. It
+      <h1 className="font-display text-2xl font-bold tracking-tight text-navy-900 sm:text-3xl">
+        Verify your email
+      </h1>
+      <p className="mt-1.5 text-sm text-navy-500">
+        We sent a 4-digit code to <span className="font-semibold text-navy-800">{email}</span>. It
         expires in 5 minutes.
       </p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5" noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-7 space-y-5" noValidate>
         <Input
           label="Verification code"
           inputMode="numeric"
           maxLength={4}
           autoComplete="one-time-code"
           placeholder="1234"
-          className="text-center text-xl font-semibold tracking-[0.6em]"
+          className="text-center font-display text-xl font-bold tracking-[0.6em]"
           error={errors.otp?.message}
           {...register("otp")}
         />
@@ -85,7 +86,7 @@ export default function VerifyOtpPage() {
         </Button>
       </form>
 
-      <div className="mt-6 flex items-center justify-between text-sm">
+      <div className="mt-6 flex items-center justify-between text-xs">
         <button
           onClick={resend}
           disabled={cooldown > 0 || resending}
@@ -93,7 +94,7 @@ export default function VerifyOtpPage() {
         >
           {resending ? "Sending…" : cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
         </button>
-        <Link to="/login" className="text-navy-400 hover:text-navy-700">
+        <Link to="/login" className="font-medium text-navy-500 hover:text-navy-800">
           Back to sign in
         </Link>
       </div>

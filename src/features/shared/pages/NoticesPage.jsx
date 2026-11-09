@@ -49,7 +49,7 @@ function NoticeFormModal({ open, onClose, notice }) {
       open={open}
       onClose={onClose}
       title={notice ? "Edit notice" : "Publish a notice"}
-      description="Notices are visible to every tenant."
+      description="Notices are visible to every tenant in the building."
       footer={
         <>
           <Button variant="outline" onClick={onClose}>
@@ -100,8 +100,9 @@ export default function NoticesPage() {
   return (
     <>
       <PageHeader
-        title="Notices"
-        description={isAdmin ? "Publish announcements for your tenants." : "Announcements from your property manager."}
+        eyebrow="Community Board"
+        title="Building Notices"
+        description={isAdmin ? "Publish building-wide announcements and updates for residents." : "Official announcements and updates from your property manager."}
         actions={
           <>
             <SearchInput value={search} onChange={setSearch} placeholder="Search notices…" />
@@ -145,10 +146,10 @@ export default function NoticesPage() {
             {notices.map((notice) => (
               <article
                 key={notice._id}
-                className="card group flex flex-col p-5 transition-all hover:-translate-y-0.5 hover:shadow-pop"
+                className="card-interactive group flex flex-col p-5"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-100 text-accent-600">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600 ring-1 ring-brand-500/15">
                     <Megaphone className="h-5 w-5" />
                   </div>
                   {isAdmin && (
@@ -165,7 +166,7 @@ export default function NoticesPage() {
                         variant="ghost"
                         size="icon"
                         aria-label="Delete notice"
-                        className="text-red-500 hover:bg-red-50"
+                        className="text-rose-600 hover:bg-rose-50"
                         onClick={() => setToDelete(notice)}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -174,21 +175,21 @@ export default function NoticesPage() {
                   )}
                 </div>
                 <Link to={`/notices/${notice._id}`} className="mt-4 block flex-1">
-                  <h3 className="line-clamp-2 text-base font-semibold text-navy-900 group-hover:text-brand-600">
+                  <h3 className="line-clamp-2 font-display text-base font-bold text-navy-900 transition-colors group-hover:text-brand-600">
                     {notice.title}
                   </h3>
                   <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-navy-500">
                     {notice.description}
                   </p>
                 </Link>
-                <div className="mt-4 flex items-center justify-between border-t border-navy-100 pt-3 text-xs text-navy-400">
+                <div className="mt-4 flex items-center justify-between border-t border-navy-100/80 pt-3 text-xs text-navy-400">
                   <span>
                     {formatDate(notice.createdAt)}
                     {notice.createdBy?.name ? ` · ${notice.createdBy.name}` : ""}
                   </span>
                   <Link
                     to={`/notices/${notice._id}`}
-                    className="inline-flex items-center gap-1 font-medium text-brand-600"
+                    className="inline-flex items-center gap-1 font-semibold text-brand-600"
                   >
                     <MessageSquare className="h-3.5 w-3.5" /> {notice.comments?.length || 0}
                   </Link>

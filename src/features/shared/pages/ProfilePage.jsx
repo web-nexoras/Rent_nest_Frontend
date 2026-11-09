@@ -61,36 +61,40 @@ export default function ProfilePage() {
 
   return (
     <>
-      <PageHeader title="My profile" description="Manage your personal information." />
+      <PageHeader
+        eyebrow="Account Settings"
+        title="Profile & Identity"
+        description="Manage your personal details, identification, and profile photo."
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <div className="flex flex-col items-center text-center">
             <Avatar name={user?.name} src={user?.profileImage} size="lg" />
-            <h2 className="mt-4 text-lg font-semibold text-navy-900">{user?.name}</h2>
-            <p className="text-sm capitalize text-navy-400">{user?.role}</p>
+            <h2 className="mt-4 font-display text-lg font-bold text-navy-900">{user?.name}</h2>
+            <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">{user?.role}</p>
             <div className="mt-3 flex flex-wrap justify-center gap-2">
               <Badge status={user?.approvalStatus} />
-              <Badge tone={user?.isVerified ? "green" : "yellow"}>
+              <Badge tone={user?.isVerified ? "emerald" : "amber"}>
                 {user?.isVerified ? "Email verified" : "Unverified"}
               </Badge>
             </div>
           </div>
-          <dl className="mt-6 divide-y divide-navy-100 border-t border-navy-100">
+          <dl className="mt-6 divide-y divide-navy-100/80 border-t border-navy-100/80">
             <DetailRow label="Email">
               <span className="inline-flex items-center gap-1.5 break-all">
-                <Mail className="h-3.5 w-3.5 text-navy-300" /> {user?.email}
+                <Mail className="h-3.5 w-3.5 text-navy-400" /> {user?.email}
               </span>
             </DetailRow>
             <DetailRow label="Phone">
               <span className="inline-flex items-center gap-1.5">
-                <Phone className="h-3.5 w-3.5 text-navy-300" /> {user?.phone}
+                <Phone className="h-3.5 w-3.5 text-navy-400" /> {user?.phone}
               </span>
             </DetailRow>
             {user?.role === "tenant" && (
               <DetailRow label="Assigned unit">
                 <span className="inline-flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5 text-navy-300" />
+                  <MapPin className="h-3.5 w-3.5 text-navy-400" />
                   {user?.assignedUnit?.unitNumber
                     ? `Unit ${user.assignedUnit.unitNumber}`
                     : "Not assigned"}
@@ -99,14 +103,14 @@ export default function ProfilePage() {
             )}
             <DetailRow label="Account">
               <span className="inline-flex items-center gap-1.5">
-                <ShieldCheck className="h-3.5 w-3.5 text-navy-300" />
+                <ShieldCheck className="h-3.5 w-3.5 text-navy-400" />
                 {user?.isActive ? "Active" : "Inactive"}
               </span>
             </DetailRow>
           </dl>
         </Card>
 
-        <Card title="Edit information" className="lg:col-span-2">
+        <Card title="Personal Information" subtitle="Keep your contact and identity records up to date" className="lg:col-span-2">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
             <div className="grid gap-5 sm:grid-cols-2">
               <Input label="Full name" error={errors.name?.message} {...register("name")} />
@@ -126,7 +130,7 @@ export default function ProfilePage() {
               {...register("permanentAddress")}
             />
             <div className="flex items-start gap-3">
-              <Camera className="mt-6 h-5 w-5 text-navy-300" />
+              <Camera className="mt-6 h-5 w-5 text-navy-400" />
               <ImagePicker
                 key={pickerKey}
                 label="Profile photo"

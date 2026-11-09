@@ -33,15 +33,15 @@ export default function ForgotPasswordPage() {
   if (sent) {
     return (
       <div className="animate-fade-in text-center">
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
-          <Send className="h-8 w-8" />
+        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 ring-1 ring-brand-500/20">
+          <Send className="h-7 w-7" />
         </div>
-        <h1 className="text-2xl font-bold text-navy-900">Check your inbox</h1>
-        <p className="mt-2 text-sm leading-relaxed text-navy-400">
-          If an account exists for <span className="font-semibold text-navy-700">{getValues("email")}</span>,
+        <h1 className="font-display text-2xl font-bold text-navy-900">Check your inbox</h1>
+        <p className="mt-2 text-sm leading-relaxed text-navy-500">
+          If an account exists for <span className="font-semibold text-navy-800">{getValues("email")}</span>,
           we've sent a password reset link. It expires in 15 minutes.
         </p>
-        <Link to="/login" className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-brand-600">
+        <Link to="/login" className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-brand-600 hover:text-brand-700">
           <ArrowLeft className="h-4 w-4" /> Back to sign in
         </Link>
       </div>
@@ -50,14 +50,17 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="animate-fade-in">
-      <h1 className="text-3xl font-bold tracking-tight text-navy-900">Forgot password?</h1>
-      <p className="mt-2 text-sm text-navy-400">
-        Enter your email and we'll send you a link to reset your password.
+      <p className="text-[11px] font-bold uppercase tracking-widest text-brand-600">Account Recovery</p>
+      <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-navy-900 sm:text-3xl">
+        Forgot password?
+      </h1>
+      <p className="mt-1.5 text-sm text-navy-500">
+        Enter your email address and we'll send you a secure link to reset your password.
       </p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5" noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-7 space-y-5" noValidate>
         <Input
-          label="Email"
+          label="Email address"
           type="email"
           icon={Mail}
           autoComplete="email"
@@ -70,7 +73,7 @@ export default function ForgotPasswordPage() {
         </Button>
       </form>
 
-      <Link to="/login" className="mt-8 flex items-center justify-center gap-2 text-sm text-navy-400 hover:text-navy-700">
+      <Link to="/login" className="mt-7 flex items-center justify-center gap-2 text-sm font-medium text-navy-500 hover:text-navy-800">
         <ArrowLeft className="h-4 w-4" /> Back to sign in
       </Link>
     </div>

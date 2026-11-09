@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Check, CreditCard, X } from "lucide-react";
-import { PageHeader } from "../../../components/ui/Layout.jsx";
+import { PageHeader, Avatar } from "../../../components/ui/Layout.jsx";
 import Button from "../../../components/ui/Button.jsx";
 import Badge from "../../../components/ui/Badge.jsx";
 import DataTable from "../../../components/ui/DataTable.jsx";
@@ -15,7 +15,7 @@ import { formatDate, formatMoney, formatMonth } from "../../../lib/utils.js";
 
 const LIMIT = 10;
 const TABS = [
-  { value: "", label: "All" },
+  { value: "", label: "All Payments" },
   { value: "pending", label: "Pending" },
   { value: "verified", label: "Verified" },
   { value: "rejected", label: "Rejected" },
@@ -25,7 +25,7 @@ export default function AdminPaymentsPage() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("");
   const [month, setMonth] = useState("");
-  const [confirm, setConfirm] = useState(null); // { type: 'verify' | 'reject', payment }
+  const [confirm, setConfirm] = useState(null);
 
   useEffect(() => setPage(1), [status, month]);
 
@@ -45,23 +45,41 @@ export default function AdminPaymentsPage() {
       key: "tenant",
       header: "Tenant",
       render: (row) => (
-        <div>
-          <p className="font-semibold text-navy-900">{row.tenant?.name || "Removed tenant"}</p>
-          <p className="text-xs text-navy-400">{row.tenant?.email}</p>
+        <div className="flex items-center gap-3">
+          <Avatar name={row.tenant?.name || "?"} size="sm" />
+          <div className="min-w-0">
+            <p className="truncate font-semibold text-navy-900">{row.tenant?.name || "Removed tenant"}</p>
+            <p className="truncate text-xs text-navy-400">{row.tenant?.email}</p>
+          </div>
         </div>
       ),
     },
-    { key: "unit", header: "Unit", render: (row) => (row.unit ? `Unit ${row.unit.unitNumber}` : "—") },
-    { key: "month", header: "Month", render: (row) => formatMonth(row.month) },
-    { key: "amount", header: "Amount", render: (row) => <span className="font-semibold text-navy-900">{formatMoney(row.amount)}</span> },
+    {
+      key: "unit",
+      header: "Unit",
+      render: (row) =>
+        row.unit ? (
+          <span className="font-semibold text-navy-800">Unit {row.unit.unitNumber}</span>
+        ) : (
+          "—"
+        ),
+    },
+    { key: "month", header: "Billing Period", render: (row) => formatMonth(row.month) },
+    {
+      key: "amount",
+      header: "Amount",
+      render: (row) => <span className="font-display font-bold tabular text-navy-900">{formatMoney(row.amount)}</span>,
+    },
     {
       key: "method",
-      header: "Method",
+      header: "Method & Ref",
       hideOn: "md",
       render: (row) => (
         <div>
-          <p>{row.paymentMethod}</p>
-          <p className="max-w-[10rem] truncate font-mono text-xs text-navy-400" title={row.transactionId}>{row.transactionId}</p>
+          <p className="font-medium text-navy-800">{row.paymentMethod}</p>
+          <p className="max-w-[11rem] truncate font-mono text-xs text-navy-400" title={row.transactionId}>
+            {row.transactionId}
+          </p>
         </div>
       ),
     },
@@ -74,10 +92,15 @@ export default function AdminPaymentsPage() {
       render: (row) =>
         row.status === "pending" ? (
           <div className="flex justify-end gap-2">
-            <Button size="sm" variant="subtle" onClick={() => setConfirm({ type: "verify", payment: row })}>
+            <Button size="sm" variant="emerald" onClick={() => setConfirm({ type: "verify", payment: row })}>
               <Check className="h-3.5 w-3.5" /> Verify
             </Button>
-            <Button size="sm" variant="ghost" className="text-red-500 hover:bg-red-50" onClick={() => setConfirm({ type: "reject", payment: row })}>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+              onClick={() => setConfirm({ type: "reject", payment: row })}
+            >
               <X className="h-3.5 w-3.5" /> Reject
             </Button>
           </div>
@@ -89,20 +112,26 @@ export default function AdminPaymentsPage() {
 
   return (
     <>
-      <PageHeader title="Payments" description="Verify or reject rent payments submitted by tenants." />
+      <PageHeader
+        eyebrow="Billing & Ledger"
+        title="Payment Ledger"
+        description="Verify or reject rent payments submitted by residents."
+      />
 
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <FilterTabs value={status} onChange={setStatus} options={TABS} />
         <div className="flex items-center gap-2">
-          <label htmlFor="month-filter" className="text-sm text-navy-400">Month</label>
+          <label htmlFor="month-filter" className="text-xs font-semibold uppercase tracking-wider text-navy-500">
+            Period
+          </label>
           <input
             id="month-filter"
             type="month"
             value={month}
             onChange={(event) => setMonth(event.target.value)}
-            className="h-10 rounded-xl border border-navy-200 bg-white px-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            className="h-10 rounded-xl border border-navy-200/80 bg-white px-3 text-sm text-navy-900 shadow-2xs focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/10"
           />
-          {month && <Button variant="ghost" size="sm" onClick={() => setMonth("")}>Clear</Button>}
+          {month && <Button variant="ghost" size="sm" onClick={() => setMonth("")}>Reset</Button>}
         </div>
       </div>
 
@@ -121,7 +150,7 @@ export default function AdminPaymentsPage() {
         onClose={close}
         onConfirm={() => (isVerify ? verify : reject).mutate(confirm.payment._id)}
         loading={verify.isPending || reject.isPending}
-        variant={isVerify ? "secondary" : "danger"}
+        variant={isVerify ? "primary" : "danger"}
         title={isVerify ? "Verify this payment?" : "Reject this payment?"}
         message={
           isVerify
