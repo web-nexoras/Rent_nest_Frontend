@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
           If an account exists for <span className="font-semibold text-navy-800">{getValues("email")}</span>,
           we've sent a password reset link. It expires in 15 minutes.
         </p>
-        <Link to="/login" className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-brand-600 hover:text-brand-700">
+        <Link to="/signin" className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-brand-600 hover:text-brand-700">
           <ArrowLeft className="h-4 w-4" /> Back to sign in
         </Link>
       </div>
@@ -64,6 +64,7 @@ export default function ForgotPasswordPage() {
           type="email"
           icon={Mail}
           autoComplete="email"
+          placeholder="Enter registered email"
           error={errors.email?.message}
           {...register("email")}
         />
@@ -72,7 +73,7 @@ export default function ForgotPasswordPage() {
         </Button>
       </form>
 
-      <Link to="/login" className="mt-7 flex items-center justify-center gap-2 text-sm font-medium text-navy-500 hover:text-navy-800">
+      <Link to="/signin" className="mt-7 flex items-center justify-center gap-2 text-sm font-medium text-navy-500 hover:text-navy-800">
         <ArrowLeft className="h-4 w-4" /> Back to sign in
       </Link>
     </div>

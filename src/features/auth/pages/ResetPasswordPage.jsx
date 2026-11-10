@@ -27,7 +27,7 @@ export default function ResetPasswordPage() {
     try {
       const data = await authService.resetPassword(token, { password });
       toast.success(data.message);
-      navigate("/login", { replace: true });
+      navigate("/signin", { replace: true });
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
@@ -45,12 +45,14 @@ export default function ResetPasswordPage() {
         <PasswordInput
           label="New password"
           autoComplete="new-password"
+          placeholder="Enter new password"
           error={errors.password?.message}
           {...register("password")}
         />
         <PasswordInput
           label="Confirm new password"
           autoComplete="new-password"
+          placeholder="Confirm new password"
           error={errors.confirmPassword?.message}
           {...register("confirmPassword")}
         />

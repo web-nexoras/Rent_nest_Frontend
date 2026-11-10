@@ -19,7 +19,7 @@ export function isValidEmailOrPhone(value = "") {
   return isValidEmailStrict(trimmed) || isValidPhoneStrict(trimmed);
 }
 
-export const loginSchema = z.object({
+export const signinSchema = z.object({
   identifier: z
     .string()
     .trim()
@@ -29,6 +29,7 @@ export const loginSchema = z.object({
     }),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
+export const loginSchema = signinSchema;
 
 export const signupSchema = z.object({
   name: z

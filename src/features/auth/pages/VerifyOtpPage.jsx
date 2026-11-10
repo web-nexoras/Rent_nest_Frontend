@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -38,7 +38,7 @@ export default function VerifyOtpPage() {
     try {
       const data = await authService.verifyOtp({ email, otp });
       toast.success(data.message);
-      navigate("/login", { replace: true, state: { email } });
+      navigate("/signin", { replace: true, state: { email } });
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
@@ -76,6 +76,7 @@ export default function VerifyOtpPage() {
           inputMode="numeric"
           maxLength={4}
           autoComplete="one-time-code"
+          placeholder="Enter 4-digit code"
           className="text-center font-display text-xl font-bold tracking-[0.6em]"
           error={errors.otp?.message}
           {...register("otp")}
@@ -93,7 +94,7 @@ export default function VerifyOtpPage() {
         >
           {resending ? "Sending…" : cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
         </button>
-        <Link to="/login" className="font-medium text-navy-500 hover:text-navy-800">
+        <Link to="/signin" className="font-medium text-navy-500 hover:text-navy-800">
           Back to sign in
         </Link>
       </div>

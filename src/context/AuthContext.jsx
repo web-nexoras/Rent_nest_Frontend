@@ -49,9 +49,8 @@ export function AuthProvider({ children }) {
     return () => setSessionExpiredHandler(null);
   }, [clearSession]);
 
-  const login = useCallback(async (credentials) => {
+  const signin = useCallback(async (credentials) => {
     await authService.signin(credentials);
-    // signin returns a partial user; get-profile has the full record.
     const data = await authService.getProfile();
     const norm = normalizeUser(data.user);
     setUser(norm);
@@ -81,12 +80,13 @@ export function AuthProvider({ children }) {
       isAdmin: user?.role === "admin",
       isTenant: user?.role === "tenant",
       isApproved: user?.role === "admin" || user?.approvalStatus === "approved",
-      login,
+      signin,
+      login: signin,
       logout,
       refreshProfile,
       setUser,
     }),
-    [user, loading, login, logout, refreshProfile],
+    [user, loading, signin, logout, refreshProfile],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

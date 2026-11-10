@@ -6,7 +6,7 @@ import { AuthLayout } from "./components/layout/AuthLayout.jsx";
 import { DashboardLayout } from "./components/layout/DashboardLayout.jsx";
 
 // Auth Pages
-import LoginPage from "./features/auth/pages/LoginPage.jsx";
+import SigninPage from "./features/auth/pages/SigninPage.jsx";
 import SignupPage from "./features/auth/pages/SignupPage.jsx";
 import VerifyOtpPage from "./features/auth/pages/VerifyOtpPage.jsx";
 import ForgotPasswordPage from "./features/auth/pages/ForgotPasswordPage.jsx";
@@ -39,7 +39,8 @@ export default function App() {
       {/* Public Auth Routes */}
       <Route element={<PublicOnlyRoute />}>
         <Route element={<AuthLayout />}>
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signin" element={<SigninPage />} />
+          <Route path="/login" element={<Navigate to="/signin" replace />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/verify-otp" element={<VerifyOtpPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
