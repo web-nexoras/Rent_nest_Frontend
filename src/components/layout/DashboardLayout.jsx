@@ -1,41 +1,23 @@
-import { Suspense, useState } from "react";
-import { Outlet, useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
-import Sidebar from "./Sidebar.jsx";
-import Topbar from "./Topbar.jsx";
-import { ADMIN_NAV_GROUPS, TENANT_NAV_GROUPS } from "./navigation.js";
-import { useAuth } from "../../context/AuthContext.jsx";
-import { PageLoader } from "../common/PageLoader.jsx";
-import { cn } from "../../lib/utils.js";
+import React, { useState } from "react";
+import { Outlet } from "react-router-dom";
+import { Sidebar } from "./Sidebar";
+import { Topbar } from "./Topbar";
 
-export default function DashboardLayout() {
-  const [open, setOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
-  const { isAdmin } = useAuth();
-  const { pathname } = useLocation();
+// Full-height Left Sidebar + Right-only Topbar & Responsive Workspace Canvas
+export function DashboardLayout() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-full bg-surface">
-      <Sidebar
-        groups={isAdmin ? ADMIN_NAV_GROUPS : TENANT_NAV_GROUPS}
-        open={open}
-        onClose={() => setOpen(false)}
-        collapsed={collapsed}
-        onToggleCollapse={() => setCollapsed((c) => !c)}
-      />
-      <div className={cn("transition-all duration-300", collapsed ? "lg:pl-20" : "lg:pl-[17rem]")}>
-        <Topbar onMenu={() => setOpen(true)} />
-        <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-8 sm:py-8">
-          <motion.div
-            key={pathname}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <Suspense fallback={<PageLoader />}>
-              <Outlet />
-            </Suspense>
-          </motion.div>
+    <div className="min-h-screen bg-[#FAF7F2] dark:bg-[#0B0D11] text-[#141413] dark:text-[#F5F0E6] transition-colors duration-300">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      <div className="flex min-h-screen flex-col lg:pl-64">
+        <Topbar onOpenSidebar={() => setSidebarOpen(true)} />
+
+        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl space-y-6">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

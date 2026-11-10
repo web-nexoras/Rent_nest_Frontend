@@ -64,7 +64,6 @@ export default function ForgotPasswordPage() {
           type="email"
           icon={Mail}
           autoComplete="email"
-          placeholder="you@example.com"
           error={errors.email?.message}
           {...register("email")}
         />

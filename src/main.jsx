@@ -1,29 +1,34 @@
-import { StrictMode, Suspense } from "react";
-import { createRoot } from "react-dom/client";
+import React from "react";
+import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import App from "./App.jsx";
+import { queryClient } from "./lib/queryClient.js";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import { ThemeProvider } from "./context/ThemeContext.jsx";
 import { ToastProvider } from "./context/ToastContext.jsx";
 import ErrorBoundary from "./components/common/ErrorBoundary.jsx";
-import { FullScreenLoader } from "./components/common/PageLoader.jsx";
-import { queryClient } from "./lib/queryClient.js";
 import "./styles/index.css";
 
-createRoot(document.getElementById("root")).render(
-  <StrictMode>
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <ToastProvider>
-            <AuthProvider>
-              <Suspense fallback={<FullScreenLoader />}>
+        <BrowserRouter
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
+          <ThemeProvider>
+            <ToastProvider>
+              <AuthProvider>
                 <App />
-              </Suspense>
-            </AuthProvider>
-          </ToastProvider>
+              </AuthProvider>
+            </ToastProvider>
+          </ThemeProvider>
         </BrowserRouter>
       </QueryClientProvider>
     </ErrorBoundary>
-  </StrictMode>,
+  </React.StrictMode>
 );

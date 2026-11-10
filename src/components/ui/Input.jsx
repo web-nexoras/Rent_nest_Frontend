@@ -1,105 +1,151 @@
-import { forwardRef, useId } from "react";
+import React from "react";
 import { cn } from "../../lib/utils.js";
 
-const base =
-  "w-full rounded-xl border bg-white px-3.5 text-sm text-navy-900 shadow-sm shadow-navy-900/[0.02] placeholder:text-navy-400 transition duration-150 hover:border-navy-300 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/10 disabled:bg-navy-50 disabled:text-navy-400";
+const baseInputClasses =
+  "w-full rounded-xl border border-[#E5DEC9] dark:border-[#252C3D] bg-white dark:bg-[#131722] px-3.5 py-2.5 text-sm text-[#141413] dark:text-[#F5F0E6] placeholder:text-[#968E82] dark:placeholder:text-[#6E7687] shadow-2xs transition-all duration-150 focus:border-[#C59B27] focus:outline-none focus:ring-2 focus:ring-[#C59B27]/20 disabled:bg-[#F6F2E9] dark:disabled:bg-[#0E1117] disabled:text-[#8C8479] disabled:cursor-not-allowed";
 
-export function Field({ label, error, hint, htmlFor, children, className }) {
-  return (
-    <div className={cn("space-y-1.5", className)}>
-      {label && (
-        <label htmlFor={htmlFor} className="block text-xs font-semibold uppercase tracking-wider text-navy-600">
-          {label}
-        </label>
-      )}
-      {children}
-      {hint && !error && <p className="text-xs text-navy-400">{hint}</p>}
-      {error && (
-        <p role="alert" className="text-xs font-medium text-rose-600">
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
-
-export const Input = forwardRef(function Input(
-  { label, error, hint, icon: Icon, className, id, ...props },
-  ref,
-) {
-  const generated = useId();
-  const inputId = id || generated;
-  return (
-    <Field label={label} error={error} hint={hint} htmlFor={inputId}>
-      <div className="relative">
-        {Icon && (
-          <Icon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-400" />
+export const Input = React.forwardRef(
+  (
+    {
+      label,
+      error,
+      hint,
+      leftIcon,
+      icon,
+      rightElement,
+      className,
+      containerClassName,
+      id,
+      ...props
+    },
+    ref
+  ) => {
+    const inputId = id || props.name;
+    const LeftIcon = leftIcon || icon;
+    return (
+      <div className={cn("w-full", containerClassName)}>
+        {label && (
+          <label
+            htmlFor={inputId}
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5C5549] dark:text-[#B8B2A6]"
+          >
+            {label}
+          </label>
         )}
-        <input
+        <div className="relative">
+          {LeftIcon && (
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#8C8479] dark:text-[#9A9488]">
+              <LeftIcon className="h-4 w-4" />
+            </div>
+          )}
+          <input
+            ref={ref}
+            id={inputId}
+            className={cn(
+              baseInputClasses,
+              "h-11",
+              LeftIcon && "pl-10",
+              rightElement && "pr-10",
+              error && "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20",
+              className
+            )}
+            {...props}
+          />
+          {rightElement && (
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+              {rightElement}
+            </div>
+          )}
+        </div>
+        {error ? (
+          <p className="mt-1.5 text-xs font-medium text-rose-600 dark:text-rose-400">{error}</p>
+        ) : (
+          hint && <p className="mt-1.5 text-xs text-[#7A7267] dark:text-[#9A9488]">{hint}</p>
+        )}
+      </div>
+    );
+  }
+);
+
+Input.displayName = "Input";
+
+export const Select = React.forwardRef(
+  ({ label, error, hint, options = [], className, containerClassName, children, id, ...props }, ref) => {
+    const selectId = id || props.name;
+    return (
+      <div className={cn("w-full", containerClassName)}>
+        {label && (
+          <label
+            htmlFor={selectId}
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5C5549] dark:text-[#B8B2A6]"
+          >
+            {label}
+          </label>
+        )}
+        <select
           ref={ref}
-          id={inputId}
-          aria-invalid={Boolean(error)}
+          id={selectId}
           className={cn(
-            base,
-            "h-10",
-            Icon && "pl-10",
-            error ? "border-rose-300 focus:border-rose-500 focus:ring-rose-500/10" : "border-navy-200",
-            className,
+            baseInputClasses,
+            "h-11",
+            error && "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20",
+            className
+          )}
+          {...props}
+        >
+          {children
+            ? children
+            : options.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+        </select>
+        {error ? (
+          <p className="mt-1.5 text-xs font-medium text-rose-600 dark:text-rose-400">{error}</p>
+        ) : (
+          hint && <p className="mt-1.5 text-xs text-[#7A7267] dark:text-[#9A9488]">{hint}</p>
+        )}
+      </div>
+    );
+  }
+);
+
+Select.displayName = "Select";
+
+export const Textarea = React.forwardRef(
+  ({ label, error, hint, className, containerClassName, rows = 4, id, ...props }, ref) => {
+    const textareaId = id || props.name;
+    return (
+      <div className={cn("w-full", containerClassName)}>
+        {label && (
+          <label
+            htmlFor={textareaId}
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[#5C5549] dark:text-[#B8B2A6]"
+          >
+            {label}
+          </label>
+        )}
+        <textarea
+          ref={ref}
+          id={textareaId}
+          rows={rows}
+          className={cn(
+            baseInputClasses,
+            error && "border-rose-400 focus:border-rose-500 focus:ring-rose-500/20",
+            className
           )}
           {...props}
         />
+        {error ? (
+          <p className="mt-1.5 text-xs font-medium text-rose-600 dark:text-rose-400">{error}</p>
+        ) : (
+          hint && <p className="mt-1.5 text-xs text-[#7A7267] dark:text-[#9A9488]">{hint}</p>
+        )}
       </div>
-    </Field>
-  );
-});
+    );
+  }
+);
 
-export const Textarea = forwardRef(function Textarea(
-  { label, error, hint, className, id, rows = 4, ...props },
-  ref,
-) {
-  const generated = useId();
-  const inputId = id || generated;
-  return (
-    <Field label={label} error={error} hint={hint} htmlFor={inputId}>
-      <textarea
-        ref={ref}
-        id={inputId}
-        rows={rows}
-        aria-invalid={Boolean(error)}
-        className={cn(
-          base,
-          "py-2.5",
-          error ? "border-rose-300 focus:border-rose-500 focus:ring-rose-500/10" : "border-navy-200",
-          className,
-        )}
-        {...props}
-      />
-    </Field>
-  );
-});
-
-export const Select = forwardRef(function Select(
-  { label, error, hint, className, id, children, ...props },
-  ref,
-) {
-  const generated = useId();
-  const inputId = id || generated;
-  return (
-    <Field label={label} error={error} hint={hint} htmlFor={inputId}>
-      <select
-        ref={ref}
-        id={inputId}
-        aria-invalid={Boolean(error)}
-        className={cn(
-          base,
-          "h-10",
-          error ? "border-rose-300 focus:border-rose-500 focus:ring-rose-500/10" : "border-navy-200",
-          className,
-        )}
-        {...props}
-      >
-        {children}
-      </select>
-    </Field>
-  );
-});
+Textarea.displayName = "Textarea";
+export default Input;

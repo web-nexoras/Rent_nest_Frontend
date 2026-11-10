@@ -63,7 +63,7 @@ export default function TenantUnitPage() {
 
       <div className="grid gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-3" padded={false}>
-          <div className="aspect-[16/10] overflow-hidden rounded-t-2xl bg-gradient-to-br from-navy-900 via-navy-800 to-brand-950">
+          <div className="aspect-[16/10] overflow-hidden rounded-t-2xl bg-gradient-to-br from-[#1A1814] via-[#121212] to-[#0B0D11]">
             {images[active] ? (
               <img src={images[active]} alt={`Unit ${unit.unitNumber} photo ${active + 1}`} className="h-full w-full object-cover" />
             ) : (
@@ -97,7 +97,7 @@ export default function TenantUnitPage() {
 
         <div className="space-y-6 lg:col-span-2">
           <Card title="Rent Schedule" subtitle="Monthly lease terms">
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-navy-950 via-navy-900 to-brand-950 p-5 text-white">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1A1814] via-[#121212] to-[#0B0D11] p-5 text-white">
               <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-brand-500/25 blur-2xl" />
               <p className="text-[11px] font-bold uppercase tracking-widest text-brand-300">Monthly Rent</p>
               <p className="mt-1.5 font-display text-3xl font-bold tabular text-white">{formatMoney(unit.rentAmount)}</p>

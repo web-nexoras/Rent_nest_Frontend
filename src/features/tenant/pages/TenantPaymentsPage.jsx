@@ -1,283 +1,542 @@
-import { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { CheckCircle2, CreditCard, Plus, Printer, ReceiptText, RotateCcw } from "lucide-react";
-import { PageHeader } from "../../../components/ui/Layout.jsx";
-import Button from "../../../components/ui/Button.jsx";
-import Badge from "../../../components/ui/Badge.jsx";
-import DataTable from "../../../components/ui/DataTable.jsx";
-import Modal from "../../../components/ui/Modal.jsx";
-import Logo from "../../../components/layout/Logo.jsx";
-import { FilterTabs } from "../../../components/ui/Filters.jsx";
-import { Input, Select } from "../../../components/ui/Input.jsx";
-import { Skeleton } from "../../../components/ui/Skeleton.jsx";
-import { EmptyState, ErrorState } from "../../../components/ui/States.jsx";
-import Pagination from "../../../components/ui/Pagination.jsx";
-import { paymentService } from "../../../services/paymentService.js";
-import { unitService } from "../../../services/unitService.js";
-import { useApiMutation } from "../../../hooks/useApiMutation.js";
-import { currentMonth, formatDate, formatDateTime, formatMoney, formatMonth } from "../../../lib/utils.js";
+import {
+  AlertTriangle,
+  Calendar,
+  CheckCircle2,
+  CreditCard,
+  Download,
+  Lock,
+  Plus,
+  Printer,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
+import { paymentService } from "../../../services/paymentService";
+import { dashboardService } from "../../../services/dashboardService";
+import { useAuth } from "../../../context/AuthContext";
+import { useToast } from "../../../components/ui/Toast";
+import { PageHeader, Card, CardHeader } from "../../../components/ui/Layout";
+import { DataTable } from "../../../components/ui/DataTable";
+import { Badge } from "../../../components/ui/Badge";
+import { Button } from "../../../components/ui/Button";
+import { Input, Select, Textarea } from "../../../components/ui/Input";
+import { Modal } from "../../../components/ui/Modal";
+import { Logo } from "../../../components/layout/Logo";
+import {
+  formatCurrency,
+  formatDate,
+  formatMonthLabel,
+  getCurrentMonthString,
+  getErrorMessage,
+} from "../../../lib/utils";
 
-const LIMIT = 8;
-const METHODS = ["bKash", "Nagad", "Rocket", "Upay", "Bank", "Cash"];
-const TABS = [
-  { value: "", label: "All Payments" },
-  { value: "pending", label: "Pending" },
-  { value: "verified", label: "Verified" },
-  { value: "rejected", label: "Rejected" },
-];
-
-const paymentSchema = z
-  .object({
-    amount: z
-      .string()
-      .trim()
-      .min(1, "Amount is required")
-      .refine((value) => Number.isFinite(Number(value)) && Number(value) > 0, "Enter a valid amount"),
-    month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Select a month"),
-    paymentMethod: z.enum(METHODS, { errorMap: () => ({ message: "Select a payment method" }) }),
-    transactionId: z.string().trim().optional(),
-  })
-  .refine((values) => values.paymentMethod === "Cash" || Boolean(values.transactionId), {
-    path: ["transactionId"],
-    message: "Transaction ID is required",
-  });
-
-function PaymentFormModal({ open, onClose, rent, preset }) {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    watch,
-    formState: { errors },
-  } = useForm({
-    resolver: zodResolver(paymentSchema),
-    defaultValues: { amount: "", month: currentMonth(), paymentMethod: "bKash", transactionId: "" },
-  });
-
-  useEffect(() => {
-    if (!open) return;
-    reset({
-      amount: String(preset?.amount ?? rent ?? ""),
-      month: preset?.month || currentMonth(),
-      paymentMethod: "bKash",
-      transactionId: "",
-    });
-  }, [open, rent, preset, reset]);
-
-  const method = watch("paymentMethod");
-
-  const mutation = useApiMutation((values) => paymentService.submit({ ...values, amount: Number(values.amount) }), {
-    invalidate: [["tenant"], ["payments"]],
-    onSuccess: onClose,
-  });
-
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={preset ? "Resubmit rejected payment" : "Submit rent payment"}
-      description="An administrator will verify your payment before it's marked as paid."
-      footer={
-        <>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button variant="primary" type="submit" form="payment-form" loading={mutation.isPending}>
-            Submit payment
-          </Button>
-        </>
-      }
-    >
-      <form id="payment-form" onSubmit={handleSubmit((values) => mutation.mutate(values))} className="space-y-4" noValidate>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Input label="Amount (৳)" type="number" min="1" error={errors.amount?.message} {...register("amount")} />
-          <Input label="Rent month" type="month" error={errors.month?.message} {...register("month")} />
-        </div>
-        <Select label="Payment method" error={errors.paymentMethod?.message} {...register("paymentMethod")}>
-          {METHODS.map((item) => <option key={item} value={item}>{item}</option>)}
-        </Select>
-        <Input
-          label="Transaction ID"
-          placeholder={method === "Cash" ? "Optional for cash payments" : "e.g. 9A7B6C5D4E"}
-          hint={method === "Cash" ? "A reference is generated automatically for cash." : undefined}
-          error={errors.transactionId?.message}
-          {...register("transactionId")}
-        />
-      </form>
-    </Modal>
-  );
-}
-
-function ReceiptModal({ paymentId, onClose }) {
-  const query = useQuery({
-    queryKey: ["tenant", "receipt", paymentId],
-    queryFn: () => paymentService.receipt(paymentId),
-    enabled: Boolean(paymentId),
-  });
-  const receipt = query.data?.receipt;
-
-  return (
-    <Modal
-      open={Boolean(paymentId)}
-      onClose={onClose}
-      title="Official Payment Receipt"
-      description="Verified rent receipt issued by Rent Nest."
-      footer={
-        <>
-          <Button variant="outline" onClick={onClose}>Close</Button>
-          <Button onClick={() => window.print()} disabled={!receipt}>
-            <Printer className="h-4 w-4" /> Print / Save PDF
-          </Button>
-        </>
-      }
-    >
-      {query.isLoading ? (
-        <Skeleton className="h-64 w-full" />
-      ) : query.isError ? (
-        <ErrorState error={query.error} onRetry={query.refetch} title="Receipt unavailable" />
-      ) : (
-        <div id="receipt-print" className="rounded-2xl border border-navy-200/70 bg-white p-6">
-          <div className="flex items-start justify-between">
-            <Logo />
-            <div className="text-right">
-              <Badge status="verified">Paid & Verified</Badge>
-              <p className="mt-2 break-all font-mono text-xs text-navy-400">{receipt.receiptNumber}</p>
-            </div>
-          </div>
-          <div className="my-6 rounded-2xl bg-gradient-to-br from-navy-950 via-navy-900 to-brand-950 p-5 text-center text-white">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-brand-300">Amount Paid</p>
-            <p className="mt-1 font-display text-3xl font-bold tabular">{formatMoney(receipt.amount)}</p>
-            <p className="mt-1 text-xs text-navy-300">Billing period: {formatMonth(receipt.month)}</p>
-          </div>
-          <dl className="divide-y divide-navy-100 text-sm">
-            {[
-              ["Tenant", receipt.tenant?.name],
-              ["Email", receipt.tenant?.email],
-              ["Unit", receipt.unit ? `Unit ${receipt.unit.unitNumber}${receipt.unit.floor ? ` · Floor ${receipt.unit.floor}` : ""}` : null],
-              ["Payment method", receipt.paymentMethod],
-              ["Transaction ID", receipt.transactionId],
-              ["Paid on", formatDateTime(receipt.paidAt)],
-              ["Verified on", formatDateTime(receipt.verifiedAt)],
-            ].map(([label, value]) => (
-              <div key={label} className="flex justify-between gap-4 py-2.5">
-                <dt className="text-navy-400">{label}</dt>
-                <dd className="break-all text-right font-semibold text-navy-800">{value || "—"}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      )}
-    </Modal>
-  );
-}
-
+// Tenant Payments Page with Locked Fixed Rent, 1-Click SSLCommerz & Printable PDF Receipt
 export default function TenantPaymentsPage() {
-  const [params, setParams] = useSearchParams();
-  const [status, setStatus] = useState("");
-  const [page, setPage] = useState(1);
-  const [formOpen, setFormOpen] = useState(params.get("pay") === "1");
-  const [preset, setPreset] = useState(null);
-  const [receiptId, setReceiptId] = useState(null);
+  const { user } = useAuth();
+  const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  useEffect(() => setPage(1), [status]);
+  const [payments, setPayments] = useState([]);
+  const [unit, setUnit] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (params.get("pay")) setParams({}, { replace: true });
-  }, [params, setParams]);
-
-  const unit = useQuery({ queryKey: ["tenant", "unit"], queryFn: unitService.mine });
-  const query = useQuery({
-    queryKey: ["tenant", "payments", status],
-    queryFn: () => paymentService.mine({ status: status || undefined }),
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthString());
+  const [payingSsl, setPayingSsl] = useState(false);
+  const [manualModalOpen, setManualModalOpen] = useState(false);
+  const [submittingManual, setSubmittingManual] = useState(false);
+  const [manualForm, setManualForm] = useState({
+    month: getCurrentMonthString(),
+    method: "bkash",
+    transactionId: "",
+    note: "",
   });
 
-  const all = query.data?.payments || [];
-  const rows = all.slice((page - 1) * LIMIT, page * LIMIT);
-  const hasUnit = Boolean(unit.data?.unit);
+  const [receiptPayment, setReceiptPayment] = useState(null);
 
-  const openForm = (nextPreset = null) => {
-    setPreset(nextPreset);
-    setFormOpen(true);
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [payRes, dashRes] = await Promise.all([
+        paymentService.myPayments({ limit: 50 }),
+        dashboardService.getTenantDashboard().catch(() => null),
+      ]);
+      const list = payRes?.payments || [];
+      setPayments(list);
+      setUnit(dashRes?.unit || user?.assignedUnit || null);
+
+      // Auto-open receipt modal when returning from SSLCommerz success callback
+      const sslStatus = searchParams.get("ssl");
+      const callbackPaymentId = searchParams.get("paymentId");
+      if (sslStatus === "success") {
+        toast.success("Online rent payment verified via SSLCommerz!", "Payment Successful");
+        if (callbackPaymentId) {
+          const found = list.find((p) => p._id === callbackPaymentId);
+          if (found) setReceiptPayment(found);
+        }
+        setSearchParams({}, { replace: true });
+      } else if (sslStatus === "fail" || sslStatus === "cancel") {
+        toast.error(
+          `SSLCommerz checkout was ${sslStatus === "cancel" ? "cancelled" : "unsuccessful"}.`,
+          "Payment Incomplete"
+        );
+        setSearchParams({}, { replace: true });
+      }
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Failed to load payments"));
+    } finally {
+      setLoading(false);
+    }
+  }, [searchParams, setSearchParams, toast, user?.assignedUnit]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Fixed monthly rent locked strictly to the assigned unit's rentAmount
+  const lockedRentAmount = unit?.rentAmount || 0;
+
+  const handleSslCheckout = async () => {
+    if (!unit) {
+      toast.error("You do not have an assigned suite yet.");
+      return;
+    }
+    try {
+      setPayingSsl(true);
+      const res = await paymentService.initSsl({ month: selectedMonth });
+      if (res?.gatewayUrl) {
+        window.location.href = res.gatewayUrl;
+      } else {
+        toast.error("SSLCommerz gateway link could not be generated.");
+      }
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Could not start online checkout"));
+    } finally {
+      setPayingSsl(false);
+    }
   };
 
+  const handleManualSubmit = async (e) => {
+    e.preventDefault();
+    if (!unit) return;
+    try {
+      setSubmittingManual(true);
+      await paymentService.create({
+        unitId: unit._id,
+        amount: lockedRentAmount,
+        month: manualForm.month,
+        method: manualForm.method,
+        transactionId: manualForm.transactionId,
+        note: manualForm.note,
+      });
+      toast.success(
+        "Payment submitted! Amount is locked to your suite's fixed rent.",
+        "Submitted"
+      );
+      setManualModalOpen(false);
+      loadData();
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Failed to submit payment"));
+    } finally {
+      setSubmittingManual(false);
+    }
+  };
+
+  // Build 12-month calendar overview for current year
+  // Months before the tenant joined are never shown
+  const joinMonth = useMemo(() => {
+    const d = user?.createdAt ? new Date(user.createdAt) : null;
+    if (!d || Number.isNaN(d.getTime())) return "0000-00";
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  }, [user?.createdAt]);
+
+  const calendarMonths = useMemo(() => {
+    const year = new Date().getFullYear();
+    const currentMonthStr = getCurrentMonthString();
+    const dayOfMonth = new Date().getDate();
+
+    return Array.from({ length: 12 }, (_, idx) => {
+      const m = String(idx + 1).padStart(2, "0");
+      const key = `${year}-${m}`;
+      const record = payments.find((p) => p.month === key);
+      let state = "upcoming";
+      if (record?.status === "paid") state = "paid";
+      else if (record?.status === "overdue") state = "overdue";
+      else if (key < currentMonthStr) state = "overdue";
+      else if (key === currentMonthStr) {
+        state = dayOfMonth > 10 ? "overdue" : "due";
+      }
+      return {
+        key,
+        label: formatMonthLabel(key),
+        state,
+        record,
+      };
+    }).filter((item) => item.key >= joinMonth || item.record);
+  }, [payments, joinMonth]);
+
   const columns = [
-    { key: "month", header: "Billing Period", render: (row) => <span className="font-semibold text-navy-900">{formatMonth(row.month)}</span> },
-    { key: "unit", header: "Unit", hideOn: "md", render: (row) => (row.unit ? `Unit ${row.unit.unitNumber}` : "—") },
-    { key: "amount", header: "Amount", render: (row) => <span className="font-display font-bold tabular text-navy-900">{formatMoney(row.amount)}</span> },
     {
-      key: "method",
-      header: "Method & Ref",
-      hideOn: "md",
+      key: "invoice",
+      header: "Invoice & Month",
       render: (row) => (
         <div>
-          <p className="font-medium text-navy-800">{row.paymentMethod}</p>
-          <p className="max-w-[9rem] truncate font-mono text-xs text-navy-400" title={row.transactionId}>{row.transactionId}</p>
+          <p className="font-semibold text-[#141413] dark:text-[#F5F0E6]">
+            {formatMonthLabel(row.month)}
+          </p>
+          <p className="text-xs text-[#7A7267] dark:text-[#9A9488]">
+            {row.invoiceNumber}
+          </p>
         </div>
       ),
     },
-    { key: "paidAt", header: "Submitted", hideOn: "lg", render: (row) => formatDate(row.paidAt) },
-    { key: "status", header: "Status", render: (row) => <Badge status={row.status} /> },
     {
-      key: "actions",
-      header: "",
-      className: "text-right",
-      render: (row) =>
-        row.status === "verified" ? (
-          <Button size="sm" variant="subtle" onClick={() => setReceiptId(row._id)}>
-            <ReceiptText className="h-3.5 w-3.5" /> Receipt
-          </Button>
-        ) : row.status === "rejected" ? (
-          <Button size="sm" variant="outline" onClick={() => openForm({ month: row.month, amount: row.amount })}>
-            <RotateCcw className="h-3.5 w-3.5" /> Resubmit
-          </Button>
-        ) : null,
+      key: "suite",
+      header: "Suite",
+      render: (row) => (
+        <span className="font-semibold text-[#141413] dark:text-[#D4AF37]">
+          {row.unit?.unitNumber || unit?.unitNumber || "—"}
+        </span>
+      ),
+    },
+    {
+      key: "amount",
+      header: "Fixed Rent",
+      render: (row) => (
+        <span className="font-bold text-[#141413] dark:text-[#F5F0E6]">
+          {formatCurrency(row.amount)}
+        </span>
+      ),
+    },
+    {
+      key: "method",
+      header: "Gateway / Method",
+      render: (row) => (
+        <span className="text-xs font-medium uppercase tracking-wider text-[#5C5549] dark:text-[#B8B2A6]">
+          {String(row.method || "").replace("_", " ")}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (row) => <Badge status={row.status} />,
+    },
+    {
+      key: "date",
+      header: "Date",
+      render: (row) => (
+        <span className="text-xs text-[#7A7267]">
+          {formatDate(row.paidAt || row.createdAt)}
+        </span>
+      ),
+    },
+    {
+      key: "receipt",
+      header: "Receipt",
+      align: "right",
+      render: (row) => (
+        <Button
+          variant="secondary"
+          size="xs"
+          leftIcon={Download}
+          onClick={() => setReceiptPayment(row)}
+        >
+          Receipt PDF
+        </Button>
+      ),
     },
   ];
 
   return (
-    <>
+    <div className="space-y-6">
       <PageHeader
-        eyebrow="Billing & Receipts"
-        title="Rent Payments"
-        description="Submit monthly rent, track verification status, and download official receipts."
+        title="Rent Payments & SSLCommerz Checkout"
+        description="Your monthly rent is locked to your assigned suite's fixed rate. Settle between the 1st and 10th to avoid overdue status."
         actions={
-          <Button variant="primary" disabled={!hasUnit} onClick={() => openForm()}>
-            <Plus className="h-4 w-4" /> Submit payment
-          </Button>
+          unit && (
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={Plus}
+              onClick={() => {
+                setManualForm({
+                  month: selectedMonth,
+                  method: "bkash",
+                  transactionId: "",
+                  note: "",
+                });
+                setManualModalOpen(true);
+              }}
+            >
+              Submit Manual / Mobile Transfer
+            </Button>
+          )
         }
       />
 
-      {!unit.isLoading && !hasUnit && (
-        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-900">
-          You can submit rent once an administrator assigns you a unit.
+      {/* Instant SSLCommerz Fixed-Rent Checkout Card */}
+      {unit && (
+        <div className="obsidian-card p-6 sm:p-7">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#C59B27]/40 bg-[#C59B27]/15 px-3 py-1 text-xs font-semibold text-[#D4AF37]">
+                <Lock className="h-3.5 w-3.5" />
+                Fixed Rent Lock · Suite {unit.unitNumber}
+              </div>
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-white">
+                Instant Online Rent Settlement (SSLCommerz)
+              </h2>
+              <p className="text-xs sm:text-sm text-[#B8B2A6] max-w-2xl">
+                Pay securely with Visa, Mastercard, bKash, Nagad, Rocket, or Internet Banking.
+                The rent amount is strictly locked to your lease rate of{" "}
+                <strong className="text-[#D4AF37]">{formatCurrency(lockedRentAmount)}</strong>.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 bg-[#181B24] p-4 rounded-2xl border border-[#2A3042]">
+              <div>
+                <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#9A9488]">
+                  Billing Month
+                </label>
+                <input
+                  type="month"
+                  min={joinMonth === "0000-00" ? undefined : joinMonth}
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="h-10 rounded-xl border border-[#2F364A] bg-[#0E1117] px-3 text-xs font-semibold text-white focus:border-[#D4AF37] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#9A9488]">
+                  Locked Rent (Read-Only)
+                </label>
+                <input
+                  type="text"
+                  readOnly
+                  value={formatCurrency(lockedRentAmount)}
+                  className="h-10 w-36 rounded-xl border border-[#2F364A] bg-[#0E1117]/80 px-3 text-xs font-bold text-[#D4AF37] cursor-not-allowed"
+                />
+              </div>
+              <Button
+                variant="gold"
+                size="md"
+                leftIcon={CreditCard}
+                isLoading={payingSsl}
+                onClick={handleSslCheckout}
+              >
+                Pay with SSLCommerz
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 
-      <div className="mb-4">
-        <FilterTabs value={status} onChange={setStatus} options={TABS} />
-      </div>
+      {/* 12-Month Rent Compliance Calendar Grid */}
+      <Card padding="p-6">
+        <CardHeader
+          icon={Calendar}
+          title={`${new Date().getFullYear()} Rent Compliance Calendar`}
+          subtitle="Due window: 1st–10th of each month · Overdue after the 10th"
+        />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+          {calendarMonths.map((item) => {
+            const styles =
+              item.state === "paid"
+                ? "border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/70 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-200"
+                : item.state === "overdue"
+                ? "border-rose-300 dark:border-rose-500/40 bg-rose-50/70 dark:bg-rose-950/30 text-rose-900 dark:text-rose-200"
+                : item.state === "due"
+                ? "border-[#D4AF37] bg-[#FBF3DC] dark:bg-amber-950/40 text-[#7A590E] dark:text-[#E2BE5C]"
+                : "border-[#EAE1D0] dark:border-[#1E2433] bg-[#FAF7F2] dark:bg-[#0E1117] text-[#7A7267]";
 
-      <DataTable
-        columns={columns}
-        rows={rows}
-        loading={query.isLoading}
-        error={query.isError ? query.error : null}
-        onRetry={query.refetch}
-        empty={
-          <EmptyState
-            icon={CreditCard}
-            title={status ? `No ${status} payments` : "No payments yet"}
-            description="Submitted payments and their verification status appear here."
-            action={hasUnit && !status && <Button variant="primary" onClick={() => openForm()}><CheckCircle2 className="h-4 w-4" /> Submit your first payment</Button>}
+            return (
+              <div
+                key={item.key}
+                onClick={() => setSelectedMonth(item.key)}
+                className={`cursor-pointer rounded-2xl border p-3 transition-transform hover:-translate-y-0.5 ${styles}`}
+              >
+                <p className="text-xs font-bold">{item.label}</p>
+                <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider">
+                  {item.state}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+
+      {/* Payment Ledger Table */}
+      <Card padding="p-0" className="overflow-hidden">
+        <DataTable
+          columns={columns}
+          data={payments}
+          isLoading={loading}
+          emptyTitle="No rent payments recorded yet"
+          emptyDescription="Use the SSLCommerz checkout above to settle your monthly rent."
+        />
+      </Card>
+
+      {/* Manual Transfer Modal (With Read-Only Fixed Rent Lock) */}
+      <Modal
+        isOpen={manualModalOpen}
+        onClose={() => setManualModalOpen(false)}
+        title="Record Bank / Mobile Rent Transfer"
+        description="Your rent amount is strictly locked to your assigned suite's monthly rate."
+      >
+        <form onSubmit={handleManualSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input
+              label="Assigned Suite (Locked)"
+              value={unit ? `Suite ${unit.unitNumber}` : ""}
+              readOnly
+              disabled
+            />
+            <Input
+              label="Fixed Monthly Rent (Locked)"
+              value={formatCurrency(lockedRentAmount)}
+              readOnly
+              disabled
+              hint="Fixed rent cannot be edited by tenant"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input
+              label="Billing Month"
+              type="month"
+              min={joinMonth === "0000-00" ? undefined : joinMonth}
+              required
+              value={manualForm.month}
+              onChange={(e) =>
+                setManualForm((s) => ({ ...s, month: e.target.value }))
+              }
+            />
+            <Select
+              label="Payment Channel"
+              value={manualForm.method}
+              onChange={(e) =>
+                setManualForm((s) => ({ ...s, method: e.target.value }))
+              }
+              options={[
+                { value: "bkash", label: "bKash Transfer" },
+                { value: "nagad", label: "Nagad Transfer" },
+                { value: "bank_transfer", label: "Bank Transfer / EFT" },
+                { value: "card", label: "Debit / Credit Card" },
+                { value: "cash", label: "Cash at Vault Desk" },
+              ]}
+            />
+          </div>
+
+          <Input
+            label="Transaction / Reference ID"
+            required
+            value={manualForm.transactionId}
+            onChange={(e) =>
+              setManualForm((s) => ({ ...s, transactionId: e.target.value }))
+            }
           />
-        }
-        footer={<Pagination page={page} total={all.length} limit={LIMIT} onPageChange={setPage} />}
-      />
 
-      <PaymentFormModal open={formOpen} rent={unit.data?.unit?.rentAmount} preset={preset} onClose={() => setFormOpen(false)} />
-      <ReceiptModal paymentId={receiptId} onClose={() => setReceiptId(null)} />
-    </>
+          <Textarea
+            label="Optional Note"
+            rows={2}
+            value={manualForm.note}
+            onChange={(e) =>
+              setManualForm((s) => ({ ...s, note: e.target.value }))
+            }
+          />
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="secondary" onClick={() => setManualModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" isLoading={submittingManual}>
+              Submit Fixed Rent ({formatCurrency(lockedRentAmount)})
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Printable Official Payment Receipt Modal */}
+      <Modal
+        isOpen={Boolean(receiptPayment)}
+        onClose={() => setReceiptPayment(null)}
+        title="Official Rent Payment Receipt"
+        description="Verified Tower Vault payment voucher"
+        size="lg"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setReceiptPayment(null)}>
+              Close
+            </Button>
+            <Button
+              variant="gold"
+              leftIcon={Printer}
+              onClick={() => window.print()}
+            >
+              Print / Save PDF Receipt
+            </Button>
+          </>
+        }
+      >
+        {receiptPayment && (
+          <div
+            id="receipt-print"
+            className="rounded-2xl border-2 border-[#E5DEC9] dark:border-[#252C3D] bg-[#FAF7F2] dark:bg-[#0E1117] p-6 space-y-5"
+          >
+            <div className="flex items-center justify-between border-b border-[#E5DEC9] dark:border-[#1E2433] pb-4">
+              <Logo to="/tenant/dashboard" />
+              <div className="text-right">
+                <p className="text-xs font-bold uppercase tracking-widest text-[#9A7418] dark:text-[#D4AF37]">
+                  Official Rent Receipt
+                </p>
+                <p className="text-sm font-bold text-[#141413] dark:text-[#F5F0E6]">
+                  {receiptPayment.invoiceNumber}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-xs">
+              <div>
+                <p className="text-[#7A7267]">Resident Name</p>
+                <p className="font-bold text-sm text-[#141413] dark:text-[#F5F0E6]">
+                  {user?.fullName}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-[#7A7267]">Suite & Billing Month</p>
+                <p className="font-bold text-sm text-[#141413] dark:text-[#D4AF37]">
+                  Suite {receiptPayment.unit?.unitNumber || unit?.unitNumber} ·{" "}
+                  {formatMonthLabel(receiptPayment.month)}
+                </p>
+              </div>
+              <div>
+                <p className="text-[#7A7267]">Payment Method & Reference</p>
+                <p className="font-semibold uppercase text-[#141413] dark:text-[#F5F0E6]">
+                  {String(receiptPayment.method || "").replace("_", " ")}{" "}
+                  {receiptPayment.transactionId ? `(${receiptPayment.transactionId})` : ""}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-[#7A7267]">Settlement Date</p>
+                <p className="font-semibold text-[#141413] dark:text-[#F5F0E6]">
+                  {formatDate(receiptPayment.paidAt || receiptPayment.createdAt)}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between rounded-2xl bg-[#121212] p-4 text-white">
+              <div>
+                <p className="text-xs text-[#B8B2A6]">Total Fixed Rent Settled</p>
+                <p className="font-display text-2xl font-bold text-[#D4AF37]">
+                  {formatCurrency(receiptPayment.amount)}
+                </p>
+              </div>
+              <Badge status={receiptPayment.status} />
+            </div>
+          </div>
+        )}
+      </Modal>
+    </div>
   );
 }

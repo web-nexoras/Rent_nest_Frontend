@@ -76,7 +76,6 @@ export default function VerifyOtpPage() {
           inputMode="numeric"
           maxLength={4}
           autoComplete="one-time-code"
-          placeholder="1234"
           className="text-center font-display text-xl font-bold tracking-[0.6em]"
           error={errors.otp?.message}
           {...register("otp")}

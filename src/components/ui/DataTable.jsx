@@ -1,75 +1,116 @@
+import React from "react";
+import { EmptyState, Skeleton } from "./Layout.jsx";
+import { ErrorState } from "./States.jsx";
 import { cn } from "../../lib/utils.js";
-import { TableSkeleton } from "./Skeleton.jsx";
-import { EmptyState, ErrorState } from "./States.jsx";
 
-/**
- * Generic responsive table.
- * columns: [{ key, header, render?(row), className?, hideOn? ("md" | "lg") }]
- */
-export default function DataTable({
-  columns,
+export function DataTable({
+  columns = [],
+  data,
   rows,
-  rowKey = "_id",
-  loading,
-  error,
+  isLoading = false,
+  loading = false,
+  error = null,
   onRetry,
   empty,
+  emptyTitle = "No records found",
+  emptyDescription = "No entries match your current filter selection.",
+  emptyAction,
   footer,
+  rowKey = "_id",
+  onRowClick,
 }) {
-  return (
-    <div className="card overflow-hidden">
-      {loading ? (
-        <TableSkeleton cols={Math.min(columns.length, 5)} />
-      ) : error ? (
+  const list = data ?? rows ?? [];
+  const busy = isLoading || loading;
+
+  if (busy) {
+    return (
+      <div className="surface-card space-y-3 p-4">
+        {[...Array(5)].map((_, idx) => (
+          <Skeleton key={idx} className="h-12 w-full" />
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="surface-card">
         <ErrorState error={error} onRetry={onRetry} />
-      ) : !rows?.length ? (
-        empty || <EmptyState title="Nothing here yet" />
-      ) : (
-        <div className="scroll-thin overflow-x-auto">
-          <table className="w-full min-w-[640px] text-left text-sm">
-            <thead>
-              <tr className="border-b border-navy-200/70 bg-navy-50/80 text-[11px] font-semibold uppercase tracking-wider text-navy-500">
-                {columns.map((column) => (
-                  <th
-                    key={column.key}
-                    className={cn(
-                      "px-5 py-3.5",
-                      column.hideOn === "md" && "hidden md:table-cell",
-                      column.hideOn === "lg" && "hidden lg:table-cell",
-                      column.className,
-                    )}
-                  >
-                    {column.header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-navy-100">
-              {rows.map((row, idx) => (
-                <tr
-                  key={typeof row[rowKey] === "object" ? row[rowKey]?.id || idx : row[rowKey] ?? idx}
-                  className="group transition-colors hover:bg-brand-50/35"
+      </div>
+    );
+  }
+
+  if (!list || list.length === 0) {
+    if (empty) {
+      return <div className="surface-card">{empty}</div>;
+    }
+    return (
+      <EmptyState
+        title={emptyTitle}
+        description={emptyDescription}
+        action={emptyAction}
+      />
+    );
+  }
+
+  return (
+    <div className="surface-card overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b border-[#EAE1D0] dark:border-[#1E2433] bg-[#F6F2E9]/70 dark:bg-[#0E1117]/70">
+              {columns.map((col) => (
+                <th
+                  key={col.key || col.header}
+                  className={cn(
+                    "px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6E675F] dark:text-[#9A9488] whitespace-nowrap",
+                    col.align === "right" && "text-right",
+                    col.align === "center" && "text-center",
+                    col.headerClassName
+                  )}
                 >
-                  {columns.map((column) => (
+                  {col.header}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#EFE9DC] dark:divide-[#1C2230] text-sm">
+            {list.map((row, rowIndex) => {
+              const keyVal =
+                typeof row[rowKey] === "object"
+                  ? row[rowKey]?._id || rowIndex
+                  : row[rowKey] || row.id || rowIndex;
+              return (
+                <tr
+                  key={keyVal}
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  className={cn(
+                    "transition-colors hover:bg-[#FAF7F2] dark:hover:bg-[#161B26]",
+                    onRowClick && "cursor-pointer"
+                  )}
+                >
+                  {columns.map((col) => (
                     <td
-                      key={column.key}
+                      key={col.key || col.header}
                       className={cn(
-                        "px-5 py-3.5 align-middle text-navy-700",
-                        column.hideOn === "md" && "hidden md:table-cell",
-                        column.hideOn === "lg" && "hidden lg:table-cell",
-                        column.className,
+                        "px-4 py-3.5 text-[#141413] dark:text-[#F5F0E6] align-middle",
+                        col.align === "right" && "text-right",
+                        col.align === "center" && "text-center",
+                        col.className
                       )}
                     >
-                      {column.render ? column.render(row) : row[column.key] ?? "—"}
+                      {col.render ? col.render(row, rowIndex) : row[col.key]}
                     </td>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      {!loading && !error && rows?.length > 0 && footer}
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {footer && <div>{footer}</div>}
     </div>
   );
 }
+
+export default DataTable;

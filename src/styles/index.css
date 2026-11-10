@@ -2,68 +2,168 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  html,
-  body,
-  #root {
-    height: 100%;
-  }
-  body {
-    @apply bg-surface font-sans text-navy-900 antialiased selection:bg-brand-500/15 selection:text-brand-700;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  }
-  h1,
-  h2,
-  h3,
-  .font-display {
-    font-family: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
-  }
-  * {
-    @apply border-navy-200/70;
-  }
-  :focus-visible {
-    @apply outline-none ring-2 ring-brand-500/50 ring-offset-1;
-  }
+/* Theme-aware neutral scale used by shared pages (space-separated RGB) */
+:root {
+  --navy-50: 250 247 242;
+  --navy-100: 242 236 225;
+  --navy-200: 229 222 201;
+  --navy-300: 207 198 179;
+  --navy-400: 140 132 121;
+  --navy-500: 110 103 95;
+  --navy-600: 92 85 73;
+  --navy-700: 61 57 52;
+  --navy-800: 38 35 31;
+  --navy-900: 20 20 19;
+  --navy-950: 11 11 10;
+  --surface: 255 255 255;
+  --surface-muted: 250 247 242;
+  --surface-subtle: 246 242 233;
+}
+
+.dark {
+  --navy-50: 14 17 23;
+  --navy-100: 22 27 38;
+  --navy-200: 37 44 61;
+  --navy-300: 58 67 88;
+  --navy-400: 124 132 150;
+  --navy-500: 154 148 136;
+  --navy-600: 184 178 166;
+  --navy-700: 213 207 196;
+  --navy-800: 232 226 214;
+  --navy-900: 245 240 230;
+  --navy-950: 255 255 255;
+  --surface: 19 23 34;
+  --surface-muted: 11 13 17;
+  --surface-subtle: 22 27 38;
 }
 
 @layer components {
   .card {
-    @apply rounded-2xl border border-navy-200/70 bg-white shadow-card transition-shadow duration-200;
+    @apply bg-white dark:bg-[#131722] border border-[#E8DFD1] dark:border-[#242B3D] rounded-2xl shadow-soft transition-all duration-300;
   }
   .card-interactive {
-    @apply rounded-2xl border border-navy-200/70 bg-white shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-navy-300/80 hover:shadow-elevated;
-  }
-  .glass {
-    @apply border border-white/15 bg-white/75 backdrop-blur-xl;
+    @apply card hover:-translate-y-1 hover:shadow-card hover:border-[#C59B27]/50;
   }
   .tabular {
     font-variant-numeric: tabular-nums;
   }
-  .scroll-thin {
-    scrollbar-width: thin;
-    scrollbar-color: #cbd5e1 transparent;
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+img {
+  max-width: 100%;
+}
+
+@layer base {
+  /* Dark mode: default borders/dividers/underlines render soft gray, not white */
+  .dark *,
+  .dark ::before,
+  .dark ::after {
+    border-color: #2A3144;
+  }
+
+  .dark hr {
+    border-color: #2A3144;
+  }
+
+  .dark a,
+  .dark .underline {
+    text-decoration-color: rgba(154, 148, 136, 0.55);
+  }
+
+  .dark input,
+  .dark select,
+  .dark textarea {
+    color-scheme: dark;
+  }
+
+  html {
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-[#FAF7F2] text-[#141413] dark:bg-[#0B0D11] dark:text-[#F5F0E6] transition-colors duration-300;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, .font-editorial {
+    font-family: "Playfair Display", Georgia, serif;
   }
 }
 
-/* Print only the receipt dialog content */
+@layer components {
+  .surface-card {
+    @apply bg-white dark:bg-[#131722] border border-[#E8DFD1] dark:border-[#242B3D] rounded-2xl shadow-soft transition-all duration-300;
+  }
+
+  .surface-card-hover {
+    @apply surface-card hover:-translate-y-1 hover:shadow-card hover:border-[#C59B27]/50 dark:hover:border-[#D4AF37]/50;
+  }
+
+  .obsidian-card {
+    @apply bg-[#121212] dark:bg-[#0E1117] text-[#F5F0E6] border border-[#2A261D] dark:border-[#C59B27]/30 rounded-2xl shadow-obsidian;
+  }
+
+  .luxury-pill-active {
+    @apply bg-[#111111] text-white dark:bg-gradient-to-r dark:from-[#D4AF37] dark:to-[#C59B27] dark:text-[#0B0D11] shadow-md;
+  }
+
+  .perspective-1200 {
+    perspective: 1200px;
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+}
+
+/* Custom sleek scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(197, 155, 39, 0.35);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(197, 155, 39, 0.65);
+}
+
+/* Print styles for Payment Receipts and Official Tenancy Lease Agreement PDF */
 @media print {
   body * {
     visibility: hidden;
   }
   #receipt-print,
-  #receipt-print * {
+  #receipt-print *,
+  #agreement-print,
+  #agreement-print * {
     visibility: visible;
   }
-  #receipt-print {
+  #receipt-print,
+  #agreement-print {
     position: absolute;
-    inset: 0;
-    padding: 24px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    color: #111111 !important;
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
+  .no-print {
+    display: none !important;
   }
 }

@@ -1,266 +1,308 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
   Bell,
-  CheckCircle2,
   ChevronDown,
-  ChevronRight,
-  Clock,
-  CreditCard,
+  FileCheck2,
   LogOut,
-  Megaphone,
   Menu,
-  UserCheck,
-  UserCircle,
-  Wrench,
+  Moon,
+  Search,
+  Sparkles,
+  Sun,
+  User,
 } from "lucide-react";
-import Dropdown, { DropdownItem } from "../ui/Dropdown.jsx";
-import { Avatar } from "../ui/Layout.jsx";
-import Badge from "../ui/Badge.jsx";
-import { ROUTE_META } from "./navigation.js";
-import { useAuth } from "../../context/AuthContext.jsx";
-import { useToast } from "../../context/ToastContext.jsx";
-import { adminService, tenantService } from "../../services/dashboardService.js";
-import { formatMoney, formatMonth } from "../../lib/utils.js";
+import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
+import { adminNavigation, tenantNavigation } from "./navigation";
+import { getInitials } from "../../lib/utils";
+import { useNoticeBadge } from "../../hooks/useNoticeBadge";
 
-function NotificationMenu() {
-  const { isAdmin, isApproved } = useAuth();
-  const navigate = useNavigate();
-
-  const adminStats = useQuery({
-    queryKey: ["admin", "stats"],
-    queryFn: adminService.getStats,
-    enabled: isAdmin,
-  });
-
-  const tenantData = useQuery({
-    queryKey: ["tenant", "dashboard"],
-    queryFn: tenantService.getDashboard,
-    enabled: !isAdmin && isApproved,
-  });
-
-  const items = [];
-
-  if (isAdmin && adminStats.data?.stats) {
-    const s = adminStats.data.stats;
-    if (s.pendingApprovals > 0) {
-      items.push({
-        id: "approvals",
-        icon: UserCheck,
-        tone: "bg-amber-500/10 text-amber-600",
-        title: `${s.pendingApprovals} tenant${s.pendingApprovals === 1 ? "" : "s"} awaiting approval`,
-        sub: "Review and assign a vacant unit",
-        to: "/admin/tenants?status=pending",
-      });
-    }
-    if (s.overdueTenantsCount > 0) {
-      items.push({
-        id: "overdue",
-        icon: AlertTriangle,
-        tone: "bg-rose-500/10 text-rose-600",
-        title: `${s.overdueTenantsCount} overdue rent account${s.overdueTenantsCount === 1 ? "" : "s"}`,
-        sub: "No payment submitted this month",
-        to: "/admin/reports",
-      });
-    }
-    if (s.pendingMaintenanceCount > 0) {
-      items.push({
-        id: "maint",
-        icon: Wrench,
-        tone: "bg-brand-500/10 text-brand-600",
-        title: `${s.pendingMaintenanceCount} open maintenance ticket${s.pendingMaintenanceCount === 1 ? "" : "s"}`,
-        sub: "Inspect and update resolution status",
-        to: "/admin/maintenance?status=pending",
-      });
-    }
-  } else if (!isAdmin && tenantData.data) {
-    const d = tenantData.data;
-    if (d.dueStatus?.status === "unpaid") {
-      items.push({
-        id: "rent-due",
-        icon: CreditCard,
-        tone: "bg-rose-500/10 text-rose-600",
-        title: `Rent due for ${formatMonth(d.currentMonth)}`,
-        sub: `${formatMoney(d.dueStatus.amountDue)} outstanding`,
-        to: "/tenant/payments?pay=1",
-      });
-    } else if (d.dueStatus?.status === "pending_verification") {
-      items.push({
-        id: "rent-pending",
-        icon: Clock,
-        tone: "bg-amber-500/10 text-amber-600",
-        title: "Payment awaiting verification",
-        sub: `Submitted for ${formatMonth(d.currentMonth)}`,
-        to: "/tenant/payments",
-      });
-    }
-    if (d.pendingMaintenanceCount > 0) {
-      items.push({
-        id: "my-maint",
-        icon: Wrench,
-        tone: "bg-brand-500/10 text-brand-600",
-        title: `${d.pendingMaintenanceCount} active maintenance request${d.pendingMaintenanceCount === 1 ? "" : "s"}`,
-        sub: "Track progress in Maintenance",
-        to: "/tenant/maintenance",
-      });
-    }
-    if (d.recentNotices?.length > 0) {
-      items.push({
-        id: "notice",
-        icon: Megaphone,
-        tone: "bg-emerald-500/10 text-emerald-600",
-        title: d.recentNotices[0].title,
-        sub: "Latest community announcement",
-        to: `/notices/${d.recentNotices[0]._id}`,
-      });
-    }
-  }
-
-  const count = items.length;
+// Cute animated Sun/Moon + Stars theme toggle switch
+export function CuteThemeToggle() {
+  const { isDark, toggleTheme } = useTheme();
 
   return (
-    <Dropdown
-      className="w-80 p-2"
-      trigger={({ open }) => (
-        <button
-          className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-navy-200/80 bg-white text-navy-600 shadow-sm transition hover:border-navy-300 hover:bg-navy-50 hover:text-navy-900"
-          aria-label="Notifications"
-          aria-expanded={open}
-        >
-          <Bell className="h-4 w-4" />
-          {count > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-brand-600 px-1 text-[10px] font-bold text-white ring-2 ring-white">
-              {count}
-            </span>
-          )}
-        </button>
-      )}
+    <button
+      type="button"
+      onClick={toggleTheme}
+      aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      className="group flex items-center gap-2.5 focus:outline-none"
     >
-      <div className="flex items-center justify-between border-b border-navy-100 px-2.5 pb-2 pt-1">
-        <span className="font-display text-xs font-bold text-navy-900">Activity Center</span>
-        <span className="rounded-full bg-navy-100 px-2 py-0.5 text-[10px] font-semibold text-navy-600">
-          {count} active
+      <span className="hidden sm:inline text-xs font-semibold tracking-wide text-[#5C5549] dark:text-[#C8C2B8]">
+        {isDark ? "Dark" : "Light"}
+      </span>
+      <div
+        className={`relative flex h-8 w-16 items-center rounded-full p-1 transition-all duration-500 border ${
+          isDark
+            ? "bg-gradient-to-r from-[#141926] via-[#1D2436] to-[#0E1117] border-[#C59B27]/50 shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+            : "bg-gradient-to-r from-[#EFE9DC] via-[#FAF7F2] to-[#E8DFD1] border-[#D8CCB8] shadow-inner"
+        }`}
+      >
+        {/* Background decorative clouds / twinkling stars */}
+        <span
+          className={`absolute right-2.5 flex items-center gap-0.5 transition-all duration-300 ${
+            isDark ? "opacity-0 scale-50" : "opacity-80 scale-100"
+          }`}
+        >
+          <span className="h-1.5 w-3 rounded-full bg-[#C59B27]/30" />
         </span>
+        <span
+          className={`absolute left-2 flex items-center gap-0.5 text-[#D4AF37] transition-all duration-300 ${
+            isDark ? "opacity-100 scale-100" : "opacity-0 scale-50"
+          }`}
+        >
+          <Sparkles className="h-3 w-3 animate-pulse" />
+        </span>
+
+        {/* Sliding cute orb */}
+        <div
+          className={`relative z-10 flex h-6 w-6 transform items-center justify-center rounded-full shadow-md transition-all duration-500 ease-out ${
+            isDark
+              ? "translate-x-8 bg-gradient-to-br from-[#D4AF37] to-[#9A7418] text-[#0B0D11] rotate-0"
+              : "translate-x-0 bg-gradient-to-br from-[#FFFFFF] to-[#F7EFE0] text-[#C59B27] rotate-12"
+          }`}
+        >
+          {isDark ? (
+            <Moon className="h-3.5 w-3.5 fill-current" />
+          ) : (
+            <Sun className="h-3.5 w-3.5 fill-current" />
+          )}
+        </div>
       </div>
-      {count === 0 ? (
-        <div className="flex flex-col items-center py-7 text-center">
-          <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
-            <CheckCircle2 className="h-4 w-4" />
-          </div>
-          <p className="text-xs font-semibold text-navy-800">All caught up</p>
-          <p className="mt-0.5 text-[11px] text-navy-400">No pending alerts right now.</p>
-        </div>
-      ) : (
-        <div className="mt-1 space-y-1">
-          {items.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => navigate(item.to)}
-                className="flex w-full items-start gap-3 rounded-xl p-2.5 text-left transition hover:bg-navy-50"
-              >
-                <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${item.tone}`}>
-                  <Icon className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-semibold text-navy-900">{item.title}</p>
-                  <p className="mt-0.5 truncate text-[11px] text-navy-500">{item.sub}</p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </Dropdown>
+    </button>
   );
 }
 
-export default function Topbar({ onMenu }) {
+// Right-only Top Navbar: Search input on the left, Cute Toggle + Notification Icons + User Profile on the far right
+export function Topbar({ onOpenSidebar }) {
   const { user, isAdmin, logout } = useAuth();
-  const { pathname } = useLocation();
   const navigate = useNavigate();
-  const toast = useToast();
+  const { hasUnseen, markSeen } = useNoticeBadge();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const searchRef = useRef(null);
+  const profileRef = useRef(null);
 
-  const meta =
-    ROUTE_META[pathname] ||
-    (pathname.startsWith("/notices/")
-      ? { group: "Community", title: "Notice Details" }
-      : { group: isAdmin ? "Admin" : "Tenant", title: "Workspace" });
+  const navItems = isAdmin ? adminNavigation : tenantNavigation;
+  const filteredRoutes = navItems.filter((item) =>
+    item.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+  );
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      toast.info("You have been signed out");
-    } finally {
-      navigate("/login", { replace: true });
+  useEffect(() => {
+    const handleOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setSearchOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (filteredRoutes.length > 0) {
+      navigate(filteredRoutes[0].href);
+      setSearchOpen(false);
+      setSearchQuery("");
     }
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-navy-200/70 bg-white/80 px-4 backdrop-blur-xl sm:px-8">
-      <div className="flex items-center gap-3">
-        <button
-          onClick={onMenu}
-          className="rounded-xl border border-navy-200 bg-white p-2 text-navy-700 shadow-sm hover:bg-navy-50 lg:hidden"
-          aria-label="Open navigation"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
-
-        {/* Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs">
-          <Link
-            to={isAdmin ? "/admin/dashboard" : "/tenant/dashboard"}
-            className="hidden font-medium text-navy-400 transition hover:text-navy-700 sm:inline"
+    <header className="sticky top-0 z-20 bg-[#FAF7F2]/90 dark:bg-[#0B0D11]/90 backdrop-blur-md border-b border-[#EAE2D3] dark:border-[#1B202E] px-4 py-3.5 sm:px-6 lg:px-8 transition-colors duration-300">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
+        {/* Left: Mobile Menu Button + Pill Search Input */}
+        <div className="flex min-w-0 flex-1 items-center gap-3 max-w-xl" ref={searchRef}>
+          <button
+            type="button"
+            onClick={onOpenSidebar}
+            aria-label="Open menu"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#E5DEC9] dark:border-[#242B3D] bg-white dark:bg-[#131722] text-[#141413] dark:text-[#F5F0E6] shadow-xs lg:hidden"
           >
-            {meta.group}
-          </Link>
-          <ChevronRight className="hidden h-3.5 w-3.5 text-navy-300 sm:inline" />
-          <span className="font-display text-sm font-bold text-navy-900">{meta.title}</span>
-        </nav>
-      </div>
+            <Menu className="h-5 w-5" />
+          </button>
 
-      <div className="flex items-center gap-2.5">
-        <NotificationMenu />
-
-        <Dropdown
-          trigger={({ open }) => (
+          <form onSubmit={handleSearchSubmit} className="relative w-full">
+            <input
+              type="text"
+              value={searchQuery}
+              onFocus={() => setSearchOpen(true)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setSearchOpen(true);
+              }}
+              placeholder="Search"
+              className="h-11 w-full rounded-xl border border-[#E6DEC8] dark:border-[#242B3D] bg-white dark:bg-[#131722] pl-4 pr-11 text-sm text-[#141413] dark:text-[#F5F0E6] placeholder:text-[#968E82] dark:placeholder:text-[#7C8496] shadow-xs focus:border-[#C59B27] focus:outline-none focus:ring-2 focus:ring-[#C59B27]/20 transition-all"
+            />
             <button
-              className="flex items-center gap-2.5 rounded-xl border border-navy-200/80 bg-white py-1.5 pl-2 pr-2.5 shadow-sm transition hover:border-navy-300 hover:bg-navy-50/60"
-              aria-haspopup="menu"
-              aria-expanded={open}
+              type="submit"
+              aria-label="Search"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4A453E] dark:text-[#C59B27] hover:text-[#C59B27]"
             >
-              <Avatar name={user?.name} src={user?.profileImage} size="sm" />
-              <div className="hidden text-left sm:block">
-                <p className="max-w-[9rem] truncate text-xs font-semibold leading-tight text-navy-900">
-                  {user?.name}
-                </p>
-                <p className="text-[11px] capitalize text-navy-400">{user?.role}</p>
-              </div>
-              <ChevronDown className="h-3.5 w-3.5 text-navy-400" />
+              <Search className="h-4 w-4" />
             </button>
-          )}
-        >
-          <div className="px-3 py-2">
-            <p className="truncate text-xs font-semibold text-navy-900">{user?.name}</p>
-            <p className="truncate text-[11px] text-navy-400">{user?.email}</p>
-            <div className="mt-2">
-              <Badge status={user?.approvalStatus}>
-                {user?.role === "admin" ? "Administrator" : user?.approvalStatus}
-              </Badge>
-            </div>
+
+            {/* Quick jump dropdown when typing in search */}
+            {searchOpen && searchQuery.trim() && (
+              <div className="absolute left-0 right-0 top-12 z-40 rounded-2xl border border-[#E5DEC9] dark:border-[#252C3D] bg-white dark:bg-[#131722] p-2 shadow-xl">
+                <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#8C8479]">
+                  Quick Navigation
+                </p>
+                {filteredRoutes.length > 0 ? (
+                  filteredRoutes.map((route) => {
+                    const Icon = route.icon;
+                    return (
+                      <button
+                        key={route.href}
+                        type="button"
+                        onClick={() => {
+                          navigate(route.href);
+                          setSearchOpen(false);
+                          setSearchQuery("");
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium text-[#141413] dark:text-[#F5F0E6] hover:bg-[#F6F2E9] dark:hover:bg-[#1C2230]"
+                      >
+                        <Icon className="h-4 w-4 text-[#C59B27]" />
+                        <span>Go to {route.name}</span>
+                      </button>
+                    );
+                  })
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigate(isAdmin ? "/admin/units" : "/tenant/payments");
+                      setSearchOpen(false);
+                    }}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium text-[#141413] dark:text-[#F5F0E6] hover:bg-[#F6F2E9] dark:hover:bg-[#1C2230]"
+                  >
+                    <Search className="h-4 w-4 text-[#C59B27]" />
+                    <span>Search "{searchQuery}"</span>
+                  </button>
+                )}
+              </div>
+            )}
+          </form>
+        </div>
+
+        {/* Far Right Corner: Cute Theme Toggle + Alert Icon + Notification Bell + User Profile */}
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
+          <CuteThemeToggle />
+
+          {/* Overdue / Priority Alert Quick Button */}
+          <button
+            type="button"
+            onClick={() => navigate(isAdmin ? "/admin/payments" : "/tenant/payments")}
+            title="Rent & Due Status Alerts"
+            className="relative hidden sm:inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E6DEC8] dark:border-[#242B3D] bg-white dark:bg-[#131722] text-[#2C2925] dark:text-[#E5DFD3] hover:border-[#C59B27] transition-colors"
+          >
+            <AlertTriangle className="h-4 w-4" />
+            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-[#131722]" />
+          </button>
+
+          {/* Notification Bell Icon (Left of User Profile) */}
+          <button
+            type="button"
+            onClick={() => {
+              markSeen();
+              navigate(isAdmin ? "/admin/notices" : "/tenant/notices");
+            }}
+            title="Building Notices & Notifications"
+            className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E6DEC8] dark:border-[#242B3D] bg-white dark:bg-[#131722] text-[#2C2925] dark:text-[#E5DFD3] hover:border-[#C59B27] transition-colors"
+          >
+            <Bell className="h-4 w-4" />
+            {hasUnseen && (
+              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-[#131722]" />
+            )}
+          </button>
+
+          {/* Far Right User Logo, Name & Profile Menu */}
+          <div className="relative" ref={profileRef}>
+            <button
+              type="button"
+              onClick={() => setProfileOpen((prev) => !prev)}
+              className="flex items-center gap-2.5 rounded-full border border-[#E6DEC8] dark:border-[#242B3D] bg-white dark:bg-[#131722] py-1 pl-1.5 pr-3 shadow-xs hover:border-[#C59B27] transition-all"
+            >
+              {user?.avatar?.url ? (
+                <img
+                  src={user.avatar.url}
+                  alt={user.fullName}
+                  className="h-8 w-8 rounded-full object-cover ring-2 ring-[#C59B27]/50"
+                />
+              ) : (
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#141413] to-[#332E26] dark:from-[#D4AF37] dark:to-[#9A7418] text-xs font-bold text-[#D4AF37] dark:text-[#0B0D11]">
+                  {getInitials(user?.fullName || "RN")}
+                </div>
+              )}
+              <div className="hidden text-left md:block">
+                <p className="max-w-[130px] truncate text-xs font-semibold text-[#141413] dark:text-[#F5F0E6]">
+                  {user?.fullName || (isAdmin ? "Luxury Manager" : "Resident")}
+                </p>
+                <p className="text-[10px] font-medium capitalize text-[#8C8479] dark:text-[#9A9488]">
+                  {user?.role || "member"}
+                </p>
+              </div>
+              <ChevronDown className="h-3.5 w-3.5 text-[#7A7267]" />
+            </button>
+
+            {profileOpen && (
+              <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-[#E5DEC9] dark:border-[#252C3D] bg-white dark:bg-[#131722] p-2 shadow-xl z-50">
+                <div className="border-b border-[#EFE9DC] dark:border-[#1E2433] px-3 py-2.5">
+                  <p className="truncate text-sm font-bold text-[#141413] dark:text-[#F5F0E6]">
+                    {user?.fullName}
+                  </p>
+                  <p className="truncate text-xs text-[#7A7267] dark:text-[#9A9488]">
+                    {user?.email || user?.phone}
+                  </p>
+                </div>
+                <div className="py-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      navigate(isAdmin ? "/admin/profile" : "/tenant/profile");
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-[#2C2925] dark:text-[#E5DFD3] hover:bg-[#F6F2E9] dark:hover:bg-[#1C2230]"
+                  >
+                    <User className="h-4 w-4 text-[#C59B27]" />
+                    <span>My Profile & Security</span>
+                  </button>
+                  {!isAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileOpen(false);
+                        navigate("/tenant/agreement");
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-[#2C2925] dark:text-[#E5DFD3] hover:bg-[#F6F2E9] dark:hover:bg-[#1C2230]"
+                    >
+                      <FileCheck2 className="h-4 w-4 text-[#C59B27]" />
+                      <span>Tenancy Agreement (PDF)</span>
+                    </button>
+                  )}
+                </div>
+                <div className="border-t border-[#EFE9DC] dark:border-[#1E2433] pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      logout();
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="my-1 border-t border-navy-100" />
-          <DropdownItem icon={UserCircle} onClick={() => navigate("/profile")}>
-            Profile settings
-          </DropdownItem>
-          <DropdownItem icon={LogOut} danger onClick={handleLogout}>
-            Sign out
-          </DropdownItem>
-        </Dropdown>
+        </div>
       </div>
     </header>
   );

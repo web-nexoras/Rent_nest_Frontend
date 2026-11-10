@@ -105,7 +105,7 @@ export default function NoticesPage() {
         description={isAdmin ? "Publish building-wide announcements and updates for residents." : "Official announcements and updates from your property manager."}
         actions={
           <>
-            <SearchInput value={search} onChange={setSearch} placeholder="Search notices…" />
+            <SearchInput value={search} onChange={setSearch} placeholder="Search" />
             {isAdmin && (
               <Button onClick={() => setFormState({ open: true, notice: null })}>
                 <Plus className="h-4 w-4" /> New notice

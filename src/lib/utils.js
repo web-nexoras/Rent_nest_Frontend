@@ -1,3 +1,5 @@
+import { getErrorMessage as extractAxiosError } from "./axios.js";
+
 /** Join class names, ignoring falsy values. */
 export const cn = (...classes) => classes.filter(Boolean).join(" ");
 
@@ -5,8 +7,9 @@ const currency = new Intl.NumberFormat("en-BD", {
   maximumFractionDigits: 0,
 });
 
-/** Money is stored as plain numbers; the backend payment methods are Bangladeshi (BDT). */
+/** Format BDT currency */
 export const formatMoney = (value) => `৳${currency.format(Number(value) || 0)}`;
+export const formatCurrency = formatMoney;
 
 export const formatDate = (value) => {
   if (!value) return "—";
@@ -41,22 +44,27 @@ export const formatMonth = (value) => {
     year: "numeric",
   });
 };
+export const formatMonthLabel = formatMonth;
 
-/** Current month in the backend's YYYY-MM format. */
+/** Current month in YYYY-MM format */
 export const currentMonth = () => {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 };
+export const getCurrentMonthString = currentMonth;
 
 export const initials = (name = "") =>
-  name
+  String(name || "")
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0].toUpperCase())
-    .join("") || "?";
+    .join("") || "RN";
+export const getInitials = initials;
 
-/** Convert an object into FormData, skipping empty values. Arrays/Files are appended per item. */
+export const getErrorMessage = extractAxiosError;
+
+/** Convert an object into FormData, skipping empty values. */
 export const toFormData = (values, fileFields = {}) => {
   const form = new FormData();
   Object.entries(values).forEach(([key, value]) => {

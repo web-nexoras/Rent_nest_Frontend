@@ -80,7 +80,7 @@ function RequestFormModal({ open, onClose }) {
         <Select label="Category" error={errors.category?.message} {...register("category")} className="capitalize">
           {CATEGORIES.map((item) => <option key={item} value={item}>{item[0].toUpperCase() + item.slice(1)}</option>)}
         </Select>
-        <Textarea label="Description" rows={5} placeholder="Describe the problem…" error={errors.description?.message} {...register("description")} />
+        <Textarea label="Description" rows={5} error={errors.description?.message} {...register("description")} />
         <ImagePicker key={pickerKey} label="Photos (optional)" max={3} onChange={setImages} />
       </form>
     </Modal>

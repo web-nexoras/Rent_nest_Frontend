@@ -129,7 +129,7 @@ export default function AdminPaymentsPage() {
             type="month"
             value={month}
             onChange={(event) => setMonth(event.target.value)}
-            className="h-10 rounded-xl border border-navy-200/80 bg-white px-3 text-sm text-navy-900 shadow-2xs focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/10"
+            className="h-10 rounded-xl border border-navy-200/80 bg-white dark:bg-[#131722] px-3 text-sm text-navy-900 shadow-2xs focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/10"
           />
           {month && <Button variant="ghost" size="sm" onClick={() => setMonth("")}>Reset</Button>}
         </div>

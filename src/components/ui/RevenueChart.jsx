@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Area,
   AreaChart,
@@ -7,63 +8,90 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { formatMoney, formatMonth } from "../../lib/utils.js";
+import { formatCurrency } from "../../lib/utils.js";
 
-function CustomTooltip({ active, payload, label }) {
-  if (!active || !payload?.length) return null;
-  const row = payload[0].payload;
-  return (
-    <div className="rounded-xl border border-navy-200/80 bg-navy-900 px-3.5 py-2.5 text-xs text-white shadow-pop">
-      <p className="font-semibold text-navy-200">{formatMonth(label)}</p>
-      <p className="tabular mt-1 text-base font-bold text-white">{formatMoney(row.total)}</p>
-      <p className="mt-0.5 text-[11px] text-navy-300">
-        {row.count} verified payment{row.count === 1 ? "" : "s"}
-      </p>
-    </div>
-  );
+const MONTH_SHORT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+function formatMonthTag(monthStr) {
+  if (!monthStr || !monthStr.includes("-")) return monthStr || "";
+  const [year, m] = monthStr.split("-");
+  const idx = parseInt(m, 10) - 1;
+  return `${MONTH_SHORT[idx] || m} '${String(year).slice(-2)}`;
 }
 
-/** Interactive Recharts area chart for verified monthly revenue. data: [{ month, total, count }] */
-export default function RevenueChart({ data = [] }) {
-  if (!data.length) return null;
+export function RevenueChart({ data = [] }) {
+  const chartData = (data || []).map((item) => ({
+    month: formatMonthTag(item.month || item._id),
+    collected: Number(item.collected ?? item.paidAmount ?? item.total ?? 0),
+    pending: Number(item.pending ?? item.pendingAmount ?? 0),
+  }));
+
+  if (chartData.length === 0) {
+    return (
+      <div className="flex h-64 items-center justify-center rounded-2xl border border-dashed border-[#E5DEC9] dark:border-[#252C3D] text-xs text-[#7A7267] dark:text-[#9A9488]">
+        Revenue analytics will appear as rent payments are verified.
+      </div>
+    );
+  }
 
   return (
-    <div className="h-64 w-full">
+    <div className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
+        <AreaChart data={chartData} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
           <defs>
-            <linearGradient id="rnRevenueFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#6366F1" stopOpacity={0.32} />
-              <stop offset="95%" stopColor="#6366F1" stopOpacity={0.0} />
+            <linearGradient id="goldCollectedGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#C59B27" stopOpacity={0.38} />
+              <stop offset="95%" stopColor="#C59B27" stopOpacity={0.02} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#E8DFD1" opacity={0.45} vertical={false} />
           <XAxis
             dataKey="month"
-            tickFormatter={formatMonth}
-            tickLine={false}
+            tick={{ fontSize: 11, fill: "#8C8479" }}
             axisLine={false}
-            tick={{ fill: "#64748B", fontSize: 12 }}
-            dy={6}
+            tickLine={false}
           />
           <YAxis
-            tickFormatter={(v) => (v >= 1000 ? `৳${(v / 1000).toFixed(0)}k` : `৳${v}`)}
-            tickLine={false}
+            tick={{ fontSize: 11, fill: "#8C8479" }}
             axisLine={false}
-            tick={{ fill: "#64748B", fontSize: 12 }}
-            width={56}
+            tickLine={false}
+            tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)}
           />
-          <Tooltip content={<CustomTooltip />} cursor={{ stroke: "#6366F1", strokeWidth: 1, strokeDasharray: "4 4" }} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "#121212",
+              borderRadius: "14px",
+              border: "1px solid #C59B27",
+              color: "#FAF7F2",
+              fontSize: "12px",
+            }}
+            formatter={(val) => [formatCurrency(val), "Collected Rent"]}
+          />
           <Area
             type="monotone"
-            dataKey="total"
-            stroke="#4F46E5"
+            dataKey="collected"
+            stroke="#C59B27"
             strokeWidth={2.5}
-            fill="url(#rnRevenueFill)"
-            activeDot={{ r: 5, strokeWidth: 2, stroke: "#ffffff", fill: "#4F46E5" }}
+            fillOpacity={1}
+            fill="url(#goldCollectedGrad)"
           />
         </AreaChart>
       </ResponsiveContainer>
     </div>
   );
 }
+
+export default RevenueChart;

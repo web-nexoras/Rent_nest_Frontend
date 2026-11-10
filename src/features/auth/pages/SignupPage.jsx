@@ -1,109 +1,214 @@
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Phone, User, ArrowRight } from "lucide-react";
-import { Input } from "../../../components/ui/Input.jsx";
-import { PasswordInput } from "../../../components/ui/PasswordInput.jsx";
-import Button from "../../../components/ui/Button.jsx";
-import { signupSchema } from "../../../lib/schemas.js";
-import { authService } from "../../../services/authService.js";
-import { useToast } from "../../../context/ToastContext.jsx";
-import { getErrorMessage } from "../../../lib/axios.js";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  Phone,
+  Shield,
+  User,
+} from "lucide-react";
+import {
+  isValidEmailStrict,
+  isValidPhoneStrict,
+  signupSchema,
+} from "../../../lib/schemas";
+import { authService } from "../../../services/authService";
+import { useToast } from "../../../components/ui/Toast";
+import { Input, Select } from "../../../components/ui/Input";
+import { Button } from "../../../components/ui/Button";
+import { getErrorMessage } from "../../../lib/utils";
 
+// 3D Interactive Signup Page with strict email/phone regex & 6+ char password gate
 export default function SignupPage() {
   const toast = useToast();
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(signupSchema),
-    defaultValues: { name: "", email: "", phone: "", password: "", confirmPassword: "" },
+    mode: "onChange",
+    defaultValues: {
+      fullName: "",
+      email: "",
+      phone: "",
+      password: "",
+      role: "tenant",
+    },
   });
 
-  const onSubmit = async ({ confirmPassword, ...values }) => {
+  const fullNameVal = watch("fullName") || "";
+  const emailVal = watch("email") || "";
+  const phoneVal = watch("phone") || "";
+  const passwordVal = watch("password") || "";
+
+  const isNameOk = fullNameVal.trim().length >= 2;
+  const isEmailOk = isValidEmailStrict(emailVal);
+  const isPhoneOk = isValidPhoneStrict(phoneVal);
+  const isPasswordOk = passwordVal.length >= 6;
+  const canSubmit = isNameOk && isEmailOk && isPhoneOk && isPasswordOk;
+
+  const onSubmit = async (values) => {
     try {
-      const data = await authService.signup(values);
-      toast.success(data.message);
+      await authService.signup(values);
+      toast.success(
+        "Verification code sent to your email. Please verify your OTP.",
+        "Registration Initiated"
+      );
       navigate("/verify-otp", { state: { email: values.email } });
-    } catch (error) {
-      // 502: the account WAS created but the OTP email failed — user can resend from the OTP page.
-      if (error?.response?.status === 502) {
-        toast.warning(getErrorMessage(error));
-        navigate("/verify-otp", { state: { email: values.email, resendHint: true } });
-        return;
-      }
-      toast.error(getErrorMessage(error));
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Registration failed. Please check your inputs."), "Error");
     }
   };
 
   return (
-    <div className="animate-fade-in">
-      <p className="text-[11px] font-bold uppercase tracking-widest text-brand-600">Tenant Onboarding</p>
-      <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-navy-900 sm:text-3xl">
-        Create your account
-      </h1>
-      <p className="mt-1.5 text-sm text-navy-500">
-        Register as a resident. An administrator will approve your account after email verification.
-      </p>
+    <div className="space-y-5">
+      <div>
+        <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#141413] dark:text-[#F5F0E6]">
+          Create Luxury Account
+        </h2>
+        <p className="mt-1 text-xs sm:text-sm text-[#6E675F] dark:text-[#9A9488]">
+          Register with a verified email and mobile number to access Rent Nest.
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-7 space-y-4" noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5" noValidate>
         <Input
-          label="Full name"
-          icon={User}
-          autoComplete="name"
-          placeholder="Jane Doe"
-          error={errors.name?.message}
-          {...register("name")}
+          label="Full Legal Name"
+          leftIcon={User}
+          error={errors.fullName?.message}
+          {...register("fullName")}
         />
-        <Input
-          label="Email address"
-          type="email"
-          icon={Mail}
-          autoComplete="email"
-          placeholder="you@example.com"
-          error={errors.email?.message}
-          {...register("email")}
-        />
-        <Input
-          label="Phone number"
-          type="tel"
-          icon={Phone}
-          autoComplete="tel"
-          placeholder="01XXXXXXXXX"
-          error={errors.phone?.message}
-          {...register("phone")}
-        />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <PasswordInput
-            label="Password"
-            autoComplete="new-password"
-            placeholder="Min. 6 characters"
-            error={errors.password?.message}
-            {...register("password")}
+
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+          <Input
+            label="Email Address"
+            type="email"
+            leftIcon={Mail}
+            error={errors.email?.message}
+            {...register("email")}
           />
-          <PasswordInput
-            label="Confirm password"
-            autoComplete="new-password"
-            placeholder="Repeat password"
-            error={errors.confirmPassword?.message}
-            {...register("confirmPassword")}
+
+          <Input
+            label="Mobile Number"
+            type="tel"
+            leftIcon={Phone}
+            error={errors.phone?.message}
+            {...register("phone")}
           />
         </div>
 
-        <Button type="submit" size="lg" className="w-full" loading={isSubmitting}>
-          Create account <ArrowRight className="h-4 w-4" />
-        </Button>
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+          <Input
+            label="Password (6+ Chars)"
+            type={showPassword ? "text" : "password"}
+            leftIcon={Lock}
+            error={errors.password?.message}
+            rightElement={
+              <button
+                type="button"
+                onClick={() => setShowPassword((p) => !p)}
+                className="text-[#8C8479] hover:text-[#141413] dark:hover:text-white"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            }
+            {...register("password")}
+          />
+
+          <Select
+            label="Account Role"
+            error={errors.role?.message}
+            options={[
+              { value: "tenant", label: "Resident / Tenant" },
+              { value: "admin", label: "Property Admin" },
+            ]}
+            {...register("role")}
+          />
+        </div>
+
+        {/* Live Validation Gate */}
+        <div className="grid grid-cols-2 gap-2 rounded-2xl border border-[#EAE2D3] dark:border-[#1E2433] bg-[#FAF7F2] dark:bg-[#0E1117] p-3 text-[11px]">
+          <span className="flex items-center gap-1.5 text-[#5C5549] dark:text-[#B8B2A6]">
+            <CheckCircle2
+              className={`h-3.5 w-3.5 ${isEmailOk ? "text-emerald-600" : "text-[#C4BBAF]"}`}
+            />
+            Valid Email Regex
+          </span>
+          <span className="flex items-center gap-1.5 text-[#5C5549] dark:text-[#B8B2A6]">
+            <CheckCircle2
+              className={`h-3.5 w-3.5 ${isPhoneOk ? "text-emerald-600" : "text-[#C4BBAF]"}`}
+            />
+            Valid Mobile Number
+          </span>
+          <span className="flex items-center gap-1.5 text-[#5C5549] dark:text-[#B8B2A6]">
+            <CheckCircle2
+              className={`h-3.5 w-3.5 ${isNameOk ? "text-emerald-600" : "text-[#C4BBAF]"}`}
+            />
+            Full Name (2+ chars)
+          </span>
+          <span className="flex items-center gap-1.5 text-[#5C5549] dark:text-[#B8B2A6]">
+            <CheckCircle2
+              className={`h-3.5 w-3.5 ${isPasswordOk ? "text-emerald-600" : "text-[#C4BBAF]"}`}
+            />
+            Password ({passwordVal.length}/6+)
+          </span>
+        </div>
+
+        <AnimatePresence mode="wait">
+          {canSubmit ? (
+            <motion.div
+              key="signup-unlocked"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+            >
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                isLoading={isSubmitting}
+                rightIcon={ArrowRight}
+                className="w-full"
+              >
+                Create Account & Send OTP
+              </Button>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="signup-locked"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-dashed border-[#D8CCB8] dark:border-[#252C3D] bg-[#F6F2E9]/70 dark:bg-[#0E1117]/70 px-4 text-xs font-medium text-[#8C8479]"
+            >
+              <Shield className="h-4 w-4 text-[#C59B27]" />
+              <span>Complete all verified fields & 6+ char password to unlock</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </form>
 
-      <p className="mt-7 text-center text-sm text-navy-500">
+      <div className="border-t border-[#EFE9DC] dark:border-[#1E2433] pt-4 text-center text-xs text-[#6E675F] dark:text-[#9A9488]">
         Already registered?{" "}
-        <Link to="/login" className="font-semibold text-brand-600 hover:text-brand-700">
-          Sign in
+        <Link
+          to="/login"
+          className="font-semibold text-[#141413] dark:text-[#D4AF37] underline underline-offset-4 hover:text-[#C59B27]"
+        >
+          Sign in with Email or Phone
         </Link>
-      </p>
+      </div>
     </div>
   );
 }

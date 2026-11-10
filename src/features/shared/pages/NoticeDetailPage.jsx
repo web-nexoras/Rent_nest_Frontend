@@ -124,7 +124,6 @@ export default function NoticeDetailPage() {
                   rows={3}
                   value={text}
                   onChange={(event) => setText(event.target.value)}
-                  placeholder="Write your comment…"
                 />
                 <div className="mt-3 flex justify-end">
                   <Button type="submit" loading={addComment.isPending} disabled={!text.trim()}>

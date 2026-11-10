@@ -63,7 +63,7 @@ export default function ImagePicker({ label, max = 3, multiple = true, onChange,
             <button
               type="button"
               onClick={() => remove(index)}
-              className="absolute -right-1.5 -top-1.5 rounded-full bg-navy-900 p-1 text-white shadow-sm transition hover:bg-rose-600"
+              className="absolute -right-1.5 -top-1.5 rounded-full bg-[#141413] p-1 text-white shadow-sm transition hover:bg-rose-600"
               aria-label="Remove image"
             >
               <X className="h-3 w-3" />

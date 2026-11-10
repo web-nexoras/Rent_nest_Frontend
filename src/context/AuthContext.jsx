@@ -12,6 +12,14 @@ import { queryClient } from "../lib/queryClient.js";
 
 const AuthContext = createContext(null);
 
+const normalizeUser = (u) => {
+  if (!u) return null;
+  return {
+    ...u,
+    fullName: u.fullName || u.name || "",
+  };
+};
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,7 +36,7 @@ export function AuthProvider({ children }) {
     let active = true;
     authService
       .getProfile()
-      .then((data) => active && setUser(data.user))
+      .then((data) => active && setUser(normalizeUser(data.user)))
       .catch(() => active && setUser(null))
       .finally(() => active && setLoading(false));
     return () => {
@@ -45,8 +53,9 @@ export function AuthProvider({ children }) {
     await authService.signin(credentials);
     // signin returns a partial user; get-profile has the full record.
     const data = await authService.getProfile();
-    setUser(data.user);
-    return data.user;
+    const norm = normalizeUser(data.user);
+    setUser(norm);
+    return norm;
   }, []);
 
   const logout = useCallback(async () => {
@@ -59,8 +68,9 @@ export function AuthProvider({ children }) {
 
   const refreshProfile = useCallback(async () => {
     const data = await authService.getProfile();
-    setUser(data.user);
-    return data.user;
+    const norm = normalizeUser(data.user);
+    setUser(norm);
+    return norm;
   }, []);
 
   const value = useMemo(
