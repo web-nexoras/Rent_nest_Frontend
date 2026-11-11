@@ -2,7 +2,6 @@ import { Outlet } from "react-router-dom";
 import { Clock, ShieldX, RefreshCw } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { Card } from "../components/ui/Layout.jsx";
-import Button from "../components/ui/Button.jsx";
 import { useState } from "react";
 import { useToast } from "../context/ToastContext.jsx";
 
@@ -56,9 +55,14 @@ export default function ApprovalGate() {
           : "Your email is verified. An administrator needs to approve your account before you can view your unit, pay rent or submit maintenance requests."}
       </p>
       {!rejected && (
-        <Button className="mt-6" variant="primary" loading={checking} onClick={check}>
-          <RefreshCw className="h-4 w-4" /> Refresh approval status
-        </Button>
+        <button
+          type="button"
+          disabled={checking}
+          onClick={check}
+          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#C59B27] to-[#D4AF37] px-5 py-2.5 text-sm font-semibold text-[#141413] shadow-md transition hover:brightness-105 active:scale-[0.99] disabled:opacity-50"
+        >
+          <RefreshCw className={`h-4 w-4 ${checking ? "animate-spin" : ""}`} /> Refresh approval status
+        </button>
       )}
     </Card>
   );

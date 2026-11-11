@@ -8,27 +8,27 @@ const ToastContext = createContext(null);
 const STYLES = {
   success: {
     icon: CheckCircle2,
-    badge: "bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/20",
-    bar: "bg-emerald-500",
-    title: "Success",
+    badge: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/30",
+    bar: "bg-gradient-to-b from-[#D4AF37] to-emerald-500",
+    defaultTitle: "Success",
   },
   error: {
     icon: XCircle,
-    badge: "bg-rose-500/10 text-rose-600 ring-1 ring-rose-500/20",
-    bar: "bg-rose-500",
-    title: "Error",
+    badge: "bg-rose-500/15 text-rose-600 dark:text-rose-400 ring-1 ring-rose-500/30",
+    bar: "bg-gradient-to-b from-rose-500 to-[#C59B27]",
+    defaultTitle: "Error",
   },
   warning: {
     icon: TriangleAlert,
-    badge: "bg-amber-500/10 text-amber-600 ring-1 ring-amber-500/20",
-    bar: "bg-amber-500",
-    title: "Heads up",
+    badge: "bg-[#C59B27]/15 text-[#C59B27] dark:text-[#D4AF37] ring-1 ring-[#D4AF37]/30",
+    bar: "bg-gradient-to-b from-[#D4AF37] to-[#C59B27]",
+    defaultTitle: "Heads up",
   },
   info: {
     icon: Info,
-    badge: "bg-brand-500/10 text-brand-600 ring-1 ring-brand-500/20",
-    bar: "bg-brand-500",
-    title: "Notice",
+    badge: "bg-[#C59B27]/15 text-[#C59B27] dark:text-[#D4AF37] ring-1 ring-[#D4AF37]/30",
+    bar: "bg-gradient-to-b from-[#C59B27] to-[#D4AF37]",
+    defaultTitle: "Notice",
   },
 };
 
@@ -42,9 +42,9 @@ export function ToastProvider({ children }) {
   }, []);
 
   const push = useCallback(
-    (type, message, duration = 4200) => {
+    (type, message, title = null, duration = 4500) => {
       const id = ++counter;
-      setToasts((current) => [...current.slice(-3), { id, type, message }]);
+      setToasts((current) => [...current.slice(-3), { id, type, message, title }]);
       if (duration) setTimeout(() => dismiss(id), duration);
     },
     [dismiss],
@@ -52,10 +52,10 @@ export function ToastProvider({ children }) {
 
   const api = useMemo(
     () => ({
-      success: (message) => push("success", message),
-      error: (message) => push("error", message, 6000),
-      warning: (message) => push("warning", message),
-      info: (message) => push("info", message),
+      success: (message, title) => push("success", message, title),
+      error: (message, title) => push("error", message, title, 6000),
+      warning: (message, title) => push("warning", message, title),
+      info: (message, title) => push("info", message, title),
     }),
     [push],
   );
@@ -69,29 +69,45 @@ export function ToastProvider({ children }) {
       >
         <AnimatePresence initial={false}>
           {toasts.map((toast) => {
-            const style = STYLES[toast.type];
+            const style = STYLES[toast.type] || STYLES.info;
             const Icon = style.icon;
+            const displayTitle = toast.title || style.defaultTitle;
             return (
               <motion.div
                 key={toast.id}
                 role="status"
-                initial={{ opacity: 0, y: -12, scale: 0.96 }}
+                initial={{ opacity: 0, y: -14, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, x: 24, scale: 0.96 }}
-                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="pointer-events-auto relative flex items-start gap-3 overflow-hidden rounded-2xl border border-navy-200/80 bg-white/95 p-4 shadow-pop backdrop-blur-xl"
+                exit={{ opacity: 0, x: 28, scale: 0.95 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className={cn(
+                  "pointer-events-auto relative flex items-start gap-3.5 overflow-hidden rounded-2xl p-4 shadow-xl backdrop-blur-xl transition-all",
+                  "border border-[#E5DEC9] bg-[#FAF7F2]/95 text-[#141413]",
+                  "dark:border-[#252C3D] dark:bg-[#131722]/95 dark:text-[#F5F0E6] dark:shadow-black/50"
+                )}
               >
-                <span className={cn("absolute inset-y-0 left-0 w-1", style.bar)} />
+                {/* Brand Luxury Accent Strip */}
+                <span className={cn("absolute inset-y-0 left-0 w-1.5", style.bar)} />
+
+                {/* Styled Icon Badge */}
                 <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-xl", style.badge)}>
                   <Icon className="h-4 w-4" />
                 </div>
+
+                {/* Content */}
                 <div className="min-w-0 flex-1 pt-0.5">
-                  <p className="text-xs font-semibold text-navy-900">{style.title}</p>
-                  <p className="mt-0.5 text-xs leading-relaxed text-navy-600">{toast.message}</p>
+                  <p className="text-xs font-bold tracking-wide uppercase text-[#141413] dark:text-[#F5F0E6]">
+                    {displayTitle}
+                  </p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-[#5C5549] dark:text-[#9A9488]">
+                    {toast.message}
+                  </p>
                 </div>
+
+                {/* Dismiss Button */}
                 <button
                   onClick={() => dismiss(toast.id)}
-                  className="rounded-lg p-1 text-navy-400 transition hover:bg-navy-100 hover:text-navy-700"
+                  className="rounded-lg p-1 text-[#8C8479] hover:bg-[#EFE9DC] hover:text-[#141413] dark:text-[#6E675F] dark:hover:bg-[#1E2433] dark:hover:text-[#F5F0E6] transition-colors"
                   aria-label="Dismiss notification"
                 >
                   <X className="h-4 w-4" />

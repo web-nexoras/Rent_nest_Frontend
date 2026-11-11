@@ -125,6 +125,9 @@ export default function AdminDashboardPage() {
   }
 
   const stats = data?.stats || {};
+  const currentMonth = data?.month || data?.currentMonth;
+  const isPastOverdue = data?.isPast10th ?? data?.isPastOverdueCutoff ?? (new Date().getDate() > 10);
+  const daysUntilCutoff = Math.max(0, 10 - (data?.dayOfMonth || new Date().getDate()));
   const matrixSummary = matrix?.summary || {};
   const totalUnitsCount = stats.totalUnits ?? matrixSummary.totalUnits ?? 0;
   const occupiedCount = stats.occupiedUnits ?? matrixSummary.occupiedUnits ?? 0;
@@ -183,14 +186,14 @@ export default function AdminDashboardPage() {
     <div className="space-y-7">
       <PageHeader
         title="Premium Luxury Dossier"
-        description={`Tower Vault Overview · ${formatMonthLabel(data?.currentMonth)} · ${
-          data?.isPastOverdueCutoff
+        description={`Tower Vault Overview · ${formatMonthLabel(currentMonth)} · ${
+          isPastOverdue
             ? "Past 10th-of-month overdue cutoff"
-            : `${data?.daysUntilOverdue ?? 0} day(s) until 10th overdue cutoff`
+            : `${daysUntilCutoff} day(s) until 10th overdue cutoff`
         }`}
         badge={
-          <Badge tone={data?.isPastOverdueCutoff ? "danger" : "warning"}>
-            {data?.isPastOverdueCutoff ? "Overdue Window Active" : "Due Window (1st–10th)"}
+          <Badge tone={isPastOverdue ? "danger" : "warning"}>
+            {isPastOverdue ? "Overdue Window Active" : "Due Window (1st–10th)"}
           </Badge>
         }
         actions={
@@ -249,7 +252,7 @@ export default function AdminDashboardPage() {
           label="Unpaid / Overdue"
           value={unpaidCount}
           subtext={`Unverified: ${pendingPaymentCount}`}
-          trend={data?.isPastOverdueCutoff ? "Past 10th" : "Due by 10th"}
+          trend={isPastOverdue ? "Past 10th" : "Due by 10th"}
           trendDirection={overdueTenants.length > 0 ? "down" : "up"}
           icon={AlertTriangle}
           tone="amber"
@@ -320,7 +323,7 @@ export default function AdminDashboardPage() {
           <CardHeader
             title="Tenant Dossier & Rent Compliance"
             subtitle={`Unpaid / Overdue & Recent Settlements for ${formatMonthLabel(
-              data?.currentMonth
+              currentMonth
             )}`}
             action={
               <Link
@@ -419,7 +422,7 @@ export default function AdminDashboardPage() {
                 ) : (
                   <tr>
                     <td colSpan={5} className="py-8 text-center text-xs text-[#7A7267]">
-                      All occupied units are settled for {formatMonthLabel(data?.currentMonth)}.
+                      All occupied units are settled for {formatMonthLabel(currentMonth)}.
                     </td>
                   </tr>
                 )}
@@ -436,12 +439,12 @@ export default function AdminDashboardPage() {
                 Financial Overview
               </span>
               <span className="rounded-full bg-[#C59B27]/20 px-2.5 py-0.5 text-[10px] font-semibold text-[#D4AF37]">
-                {formatMonthLabel(data?.currentMonth)}
+                {formatMonthLabel(currentMonth)}
               </span>
             </div>
 
             <p className="mt-3 font-display text-3xl sm:text-4xl font-bold tracking-tight text-[#D4AF37]">
-              {formatCurrency(revenue.totalCollected || revenue.monthlyCollected || 0)}
+              {formatCurrency(monthlyCollected)}
             </p>
             <p className="mt-1 text-xs text-[#9A9488]">
               Cumulative verified treasury across all active suites

@@ -6,7 +6,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { authService } from "../services/authService.js";
+import { authApi as authService } from "../api/auth/authApi.js";
 import { setSessionExpiredHandler } from "../lib/axios.js";
 import { queryClient } from "../lib/queryClient.js";
 
