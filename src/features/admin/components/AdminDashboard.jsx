@@ -15,8 +15,6 @@ import { remindAllTenants, remindTenant } from "@/features/payments/api/paymentA
 import { useToast } from "@/components/feedback/ToastContext.jsx";
 import { PageHeader, Card, CardHeader, Skeleton } from "@/components/common/Layout.jsx";
 import { StatCard } from "@/components/common/StatCard.jsx";
-import { Badge } from "@/components/common/Badge.jsx";
-import { Button } from "@/components/common/Button.jsx";
 import { RevenueChart } from "@/components/common/RevenueChart.jsx";
 import { FinancialCard } from "@/features/admin/components/FinancialCard.jsx";
 import { ShowcaseWings } from "@/features/admin/components/ShowcaseWings.jsx";
@@ -215,6 +213,7 @@ export default function AdminDashboard() {
       ),
     }))
     .sort((a, b) => a.level - b.level || a.code.localeCompare(b.code));
+  const dashboardAction = "inline-flex min-h-10 w-full min-w-0 items-center justify-center gap-2 rounded-xl px-4 py-2 text-center text-sm font-semibold leading-snug transition sm:w-auto";
 
   return (
     <div className="space-y-7">
@@ -225,41 +224,35 @@ export default function AdminDashboard() {
             ? "Past 10th-of-month overdue cutoff"
             : `${daysUntilCutoff} day(s) until 10th overdue cutoff`
         }`}
-        badge={
-          <Badge tone={isPastOverdue ? "danger" : "warning"}>
-            {isPastOverdue ? "Overdue Window Active" : "Due Window (1st–10th)"}
-          </Badge>
-        }
         actions={
           <>
             {totalUnitsCount < 48 && (
-              <Button
-                variant="gold"
-                size="sm"
-                leftIcon={Sparkles}
-                isLoading={seeding}
+              <button
+                type="button"
+                className={`${dashboardAction} bg-[#D4AF37] text-[#141413] hover:bg-[#C59B27] disabled:opacity-50`}
+                disabled={seeding}
                 onClick={handleSeedBuilding}
               >
                 Initialize 48 Units (A–L)
-              </Button>
+              </button>
             )}
-            <Button
-              variant="secondary"
-              size="sm"
-              leftIcon={BellRing}
-              isLoading={remindingAll}
+            <button
+              type="button"
+              className={`${dashboardAction} border border-[#E5DEC9] bg-white text-[#141413] hover:bg-[#F6F2E9] disabled:opacity-50 dark:border-[#252C3D] dark:bg-[#131722] dark:text-[#F5F0E6]`}
+              disabled={remindingAll}
               onClick={handleRemindAll}
             >
+              <BellRing className="h-4 w-4 shrink-0" />
               Remind Unpaid ({overdueTenants.length})
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              leftIcon={Plus}
+            </button>
+            <button
+              type="button"
+              className={`${dashboardAction} bg-[#141413] text-white hover:bg-[#2A2927] dark:bg-[#D4AF37] dark:text-[#0B0D11]`}
               onClick={() => navigate("/admin/tenants")}
             >
+              <Plus className="h-4 w-4 shrink-0" />
               Onboard Resident
-            </Button>
+            </button>
           </>
         }
       />

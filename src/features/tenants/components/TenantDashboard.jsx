@@ -16,7 +16,6 @@ import { useToast } from "@/components/feedback/ToastContext.jsx";
 import { PageHeader, Card, CardHeader, Skeleton } from "@/components/common/Layout.jsx";
 import { StatCard } from "@/components/common/StatCard.jsx";
 import { Badge } from "@/components/common/Badge.jsx";
-import { Button } from "@/components/common/Button.jsx";
 import {
   formatCurrency,
   formatDate,
@@ -100,6 +99,7 @@ export default function TenantDashboard() {
   const pendingMaintenanceCount = data?.pendingMaintenanceCount || 0;
   const totalPaidAmount = recentPayments.filter((p) => p.status === "verified").reduce((sum, p) => sum + (p.amount || 0), 0);
   const paidPaymentsCount = recentPayments.filter((p) => p.status === "verified").length;
+  const actionButton = "inline-flex min-h-10 w-full min-w-0 items-center justify-center gap-2 rounded-xl px-4 py-2 text-center text-sm font-semibold leading-snug transition disabled:cursor-not-allowed disabled:opacity-55 sm:w-auto";
 
   return (
     <div className="space-y-6">
@@ -128,24 +128,24 @@ export default function TenantDashboard() {
         }
         actions={
           <>
-            <Button
-              variant="secondary"
-              size="sm"
-              leftIcon={FileCheck2}
+            <button
+              type="button"
+              className={`${actionButton} border border-[#E5DEC9] bg-white text-[#141413] hover:bg-[#F6F2E9] dark:border-[#252C3D] dark:bg-[#131722] dark:text-[#F5F0E6] dark:hover:bg-[#1C2230]`}
               onClick={() => navigate("/tenant/agreement")}
             >
+              <FileCheck2 className="h-4 w-4 shrink-0" />
               Tenancy Agreement (PDF)
-            </Button>
+            </button>
             {needsPayment && (
-              <Button
-                variant="gold"
-                size="sm"
-                leftIcon={CreditCard}
-                isLoading={payingSsl}
+              <button
+                type="button"
+                className={`${actionButton} bg-[#D4AF37] text-[#141413] hover:bg-[#C59B27]`}
+                disabled={payingSsl}
                 onClick={handlePayOnlineNow}
               >
+                <CreditCard className="h-4 w-4 shrink-0" />
                 Pay {formatCurrency(unit.rentAmount)} via SSLCommerz
-              </Button>
+              </button>
             )}
           </>
         }
@@ -212,31 +212,31 @@ export default function TenantDashboard() {
             <div className="flex flex-wrap items-center gap-2.5 shrink-0">
               {needsPayment ? (
                 <>
-                  <Button
-                    variant="primary"
-                    size="md"
-                    leftIcon={CreditCard}
-                    isLoading={payingSsl}
+                  <button
+                    type="button"
+                    className={`${actionButton} bg-[#141413] text-white hover:bg-[#2A2927] dark:bg-[#D4AF37] dark:text-[#0B0D11]`}
+                    disabled={payingSsl}
                     onClick={handlePayOnlineNow}
                   >
+                    <CreditCard className="h-4 w-4 shrink-0" />
                     Pay Online Now
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="md"
+                  </button>
+                  <button
+                    type="button"
+                    className={`${actionButton} border border-[#E5DEC9] bg-white text-[#141413] hover:bg-[#F6F2E9] dark:border-[#252C3D] dark:bg-[#131722] dark:text-[#F5F0E6]`}
                     onClick={() => navigate("/tenant/payments")}
                   >
                     Manual / bKash Record
-                  </Button>
+                  </button>
                 </>
               ) : (
-                <Button
-                  variant="secondary"
-                  size="md"
+                <button
+                  type="button"
+                  className={`${actionButton} border border-[#E5DEC9] bg-white text-[#141413] hover:bg-[#F6F2E9] dark:border-[#252C3D] dark:bg-[#131722] dark:text-[#F5F0E6]`}
                   onClick={() => navigate("/tenant/payments")}
                 >
                   View Payment Status
-                </Button>
+                </button>
               )}
             </div>
           </div>
@@ -299,7 +299,7 @@ export default function TenantDashboard() {
               {recentPayments.map((p) => (
                 <div
                   key={p._id}
-                  className="flex items-center justify-between gap-3 py-3.5 text-sm"
+                  className="flex flex-col gap-2 py-3.5 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3"
                 >
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-[#141413] dark:text-[#F5F0E6]">
@@ -312,7 +312,7 @@ export default function TenantDashboard() {
                       {formatDate(p.paidAt || p.createdAt)}
                     </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-3">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2 sm:shrink-0 sm:gap-3">
                     <span className="font-bold text-[#141413] dark:text-[#D4AF37]">
                       {formatCurrency(p.amount)}
                     </span>
@@ -345,15 +345,14 @@ export default function TenantDashboard() {
           </div>
 
           <div className="mt-6 space-y-2.5 pt-4 border-t border-[#26231D]">
-            <Button
-              variant="gold"
-              size="md"
-              leftIcon={FileCheck2}
+            <button
+              type="button"
+              className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-xl bg-[#D4AF37] px-4 py-2 text-center text-sm font-semibold leading-snug text-[#141413] transition hover:bg-[#C59B27]"
               onClick={() => navigate("/tenant/agreement")}
-              className="w-full"
             >
+              <FileCheck2 className="h-4 w-4 shrink-0" />
               View &amp; Download Agreement PDF
-            </Button>
+            </button>
           </div>
         </div>
       </div>

@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Plus, Trash2, Wrench } from "lucide-react";
 import { PageHeader, Card } from "@/components/common/Layout.jsx";
-import Button from "@/components/common/Button.jsx";
 import Badge from "@/components/common/Badge.jsx";
 import Modal from "@/components/common/Modal.jsx";
 import ConfirmDialog from "@/components/common/ConfirmDialog.jsx";
@@ -75,8 +74,8 @@ function RequestFormModal({ open, onClose }) {
       description="Tell us what needs fixing and attach photos if helpful."
       footer={
         <>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button type="submit" form="maintenance-form" loading={mutation.isPending}>Submit request</Button>
+          <button type="button" onClick={onClose} className="min-h-10 w-full rounded-xl border border-[#E5DEC9] bg-white px-4 py-2 text-sm font-semibold text-[#141413] hover:bg-[#F6F2E9] sm:w-auto dark:border-[#252C3D] dark:bg-[#131722] dark:text-[#F5F0E6]">Cancel</button>
+          <button type="submit" form="maintenance-form" disabled={mutation.isPending} className="min-h-10 w-full rounded-xl bg-[#141413] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2A2927] disabled:opacity-50 sm:w-auto dark:bg-[#D4AF37] dark:text-[#0B0D11]">{mutation.isPending ? "Submitting…" : "Submit request"}</button>
         </>
       }
     >
@@ -116,9 +115,9 @@ export default function TenantMaintenance() {
         title="Maintenance Requests"
         description="Report unit issues and track repair progress in real time."
         actions={
-          <Button disabled={!hasUnit} onClick={() => setFormOpen(true)}>
+          <button type="button" disabled={!hasUnit} onClick={() => setFormOpen(true)} className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#141413] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2A2927] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:bg-[#D4AF37] dark:text-[#0B0D11]">
             <Plus className="h-4 w-4" /> New request
-          </Button>
+          </button>
         }
       />
 

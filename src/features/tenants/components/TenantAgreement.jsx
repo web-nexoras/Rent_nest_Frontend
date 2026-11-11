@@ -16,7 +16,6 @@ import { getTenantDashboard } from "@/features/tenants/api/dashboardApi.js";
 import { useAuth } from "@/hooks/useAuth.jsx";
 import { useToast } from "@/components/feedback/ToastContext.jsx";
 import { PageHeader, Card, Skeleton } from "@/components/common/Layout.jsx";
-import { Button } from "@/components/common/Button.jsx";
 import { Badge } from "@/components/common/Badge.jsx";
 import { Logo } from "@/components/layout/Logo.jsx";
 import { formatCurrency, formatDate, formatFloor, getErrorMessage } from "@/utils/helpers.js";
@@ -74,22 +73,22 @@ export default function TenantAgreement() {
           badge={<Badge status="verified">Active Covenant</Badge>}
           actions={
             <>
-              <Button
-                variant="secondary"
-                size="sm"
-                leftIcon={Printer}
+              <button
+                type="button"
+                className="inline-flex min-h-10 w-full min-w-0 items-center justify-center gap-2 rounded-xl border border-[#E5DEC9] bg-white px-4 py-2 text-center text-sm font-semibold leading-snug text-[#141413] hover:bg-[#F6F2E9] sm:w-auto dark:border-[#252C3D] dark:bg-[#131722] dark:text-[#F5F0E6]"
                 onClick={handleDownloadPdf}
               >
+                <Printer className="h-4 w-4 shrink-0" />
                 Print Agreement
-              </Button>
-              <Button
-                variant="gold"
-                size="sm"
-                leftIcon={Download}
+              </button>
+              <button
+                type="button"
+                className="inline-flex min-h-10 w-full min-w-0 items-center justify-center gap-2 rounded-xl bg-[#D4AF37] px-4 py-2 text-center text-sm font-semibold leading-snug text-[#141413] hover:bg-[#C59B27] sm:w-auto"
                 onClick={handleDownloadPdf}
               >
+                <Download className="h-4 w-4 shrink-0" />
                 Download Official PDF
-              </Button>
+              </button>
             </>
           }
         />
@@ -355,14 +354,14 @@ export default function TenantAgreement() {
                 I have read and acknowledged the Rent Nest Tenancy Rules &amp; Damage Liability Policy.
               </span>
             </label>
-            <Button
-              variant="gold"
-              size="sm"
-              leftIcon={Download}
+            <button
+              type="button"
+              className="inline-flex min-h-10 w-full min-w-0 items-center justify-center gap-2 rounded-xl bg-[#D4AF37] px-4 py-2 text-center text-sm font-semibold leading-snug text-[#141413] hover:bg-[#C59B27] sm:w-auto"
               onClick={handleDownloadPdf}
             >
+              <Download className="h-4 w-4 shrink-0" />
               Download Agreement (PDF)
-            </Button>
+            </button>
           </div>
         </div>
       </div>

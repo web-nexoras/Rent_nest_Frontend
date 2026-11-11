@@ -1,6 +1,5 @@
 import React from "react";
 import { CreditCard, Lock } from "lucide-react";
-import { Button } from "@/components/common/Button.jsx";
 import { formatCurrency, formatMonthLabel } from "@/utils/helpers.js";
 
 export default function TenantCheckoutCard({
@@ -65,16 +64,15 @@ export default function TenantCheckoutCard({
               className="h-10 w-full cursor-not-allowed rounded-xl border border-[#2F364A] bg-[#0E1117]/80 px-3 text-xs font-bold text-[#D4AF37] sm:w-36"
             />
           </div>
-          <Button
-            variant="gold"
-            size="md"
-            leftIcon={CreditCard}
-            isLoading={isPaying}
-            disabled={paymentLocked}
+          <button
+            type="button"
+            className="inline-flex min-h-10 w-full min-w-0 items-center justify-center gap-2 rounded-xl bg-[#D4AF37] px-4 py-2 text-center text-sm font-semibold leading-snug text-[#141413] transition hover:bg-[#C59B27] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            disabled={isPaying || paymentLocked}
             onClick={onCheckout}
           >
+            <CreditCard className="h-4 w-4 shrink-0" />
             Pay with SSLCommerz
-          </Button>
+          </button>
         </section>
       </div>
     </section>

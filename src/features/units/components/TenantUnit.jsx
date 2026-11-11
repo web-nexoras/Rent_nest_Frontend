@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { BedDouble, Building2, CalendarDays, Layers, Ruler, Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, DetailRow, PageHeader } from "@/components/common/Layout.jsx";
-import Button from "@/components/common/Button.jsx";
 import Badge from "@/components/common/Badge.jsx";
 import { Skeleton } from "@/components/common/Skeleton.jsx";
 import { EmptyState, ErrorState } from "@/components/feedback/States.jsx";
@@ -55,8 +54,8 @@ export default function TenantUnit() {
         title={`Unit ${unit.unitNumber}`}
         description="Your assigned apartment specifications and monthly rent schedule."
         actions={
-          <Link to="/tenant/payments?pay=1">
-            <Button variant="primary"><Wallet className="h-4 w-4" /> Pay rent</Button>
+          <Link to="/tenant/payments?pay=1" className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#141413] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2A2927] sm:w-auto dark:bg-[#D4AF37] dark:text-[#0B0D11]">
+            <Wallet className="h-4 w-4 shrink-0" /> Pay rent
           </Link>
         }
       />

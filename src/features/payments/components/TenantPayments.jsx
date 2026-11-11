@@ -16,7 +16,6 @@ import { useAuth } from "@/hooks/useAuth.jsx";
 import { useToast } from "@/components/feedback/ToastContext.jsx";
 import { PageHeader, Card, CardHeader } from "@/components/common/Layout.jsx";
 import { DataTable } from "@/components/common/DataTable.jsx";
-import { Button } from "@/components/common/Button.jsx";
 import { Input, Select } from "@/components/common/Input.jsx";
 import { Modal } from "@/components/common/Modal.jsx";
 import { PaymentCalendar } from "@/features/payments/components/PaymentCalendar.jsx";
@@ -242,10 +241,9 @@ export default function TenantPayments() {
         description="Your monthly rent is locked to your assigned suite's fixed rate. Settle between the 1st and 10th to avoid overdue status."
         actions={
           unit && (
-            <Button
-              variant="secondary"
-              size="sm"
-              leftIcon={Plus}
+            <button
+              type="button"
+              className="inline-flex min-h-10 w-full min-w-0 items-center justify-center gap-2 rounded-xl border border-[#E5DEC9] bg-white px-4 py-2 text-center text-sm font-semibold leading-snug text-[#141413] hover:bg-[#F6F2E9] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:border-[#252C3D] dark:bg-[#131722] dark:text-[#F5F0E6]"
               disabled={paymentLocked}
               onClick={() => {
                 setManualForm({
@@ -256,8 +254,9 @@ export default function TenantPayments() {
                 setManualModalOpen(true);
               }}
             >
+              <Plus className="h-4 w-4 shrink-0" />
               Submit Manual / Mobile Transfer
-            </Button>
+            </button>
           )
         }
       />

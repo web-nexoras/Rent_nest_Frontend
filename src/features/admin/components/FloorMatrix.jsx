@@ -1,12 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Layers } from "lucide-react";
+import { ChevronLeft, ChevronRight, Layers } from "lucide-react";
 import { Card, CardHeader } from "@/components/common/Layout.jsx";
 import { formatCurrency, formatFloor } from "@/utils/helpers.js";
 
 // Live 12-Floor Tower Matrix (Floors A – L)
 export function FloorMatrix({ floors = [] }) {
   const navigate = useNavigate();
+  const [page, setPage] = useState(0);
+  const pageSize = 3;
+  const pageCount = Math.ceil(floors.length / pageSize);
+  const visibleFloors = floors.slice(page * pageSize, (page + 1) * pageSize);
 
   if (floors.length === 0) return null;
 
@@ -15,7 +19,7 @@ export function FloorMatrix({ floors = [] }) {
       <CardHeader
         icon={Layers}
         title="Live 12-Floor Tower Matrix (Floors A – L)"
-        subtitle="Real-time occupancy & current-month rent status across all 48 residential flats"
+        subtitle="Real-time occupancy and current-month rent status"
         action={
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 text-emerald-700 dark:text-emerald-300 font-medium">
@@ -34,9 +38,40 @@ export function FloorMatrix({ floors = [] }) {
         }
       />
 
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs text-[#7A7267] dark:text-[#9A9488]">
+          Showing floors {page * pageSize + 1}–{Math.min((page + 1) * pageSize, floors.length)} of {floors.length}
+        </p>
+        {pageCount > 1 && (
+          <div className="flex items-center justify-between gap-2 sm:justify-end">
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.max(0, current - 1))}
+              disabled={page === 0}
+              aria-label="Show previous floors"
+              className="inline-flex min-h-10 items-center justify-center gap-1 rounded-xl border border-[#E5DEC9] bg-white px-3 py-2 text-sm font-semibold text-[#5C5549] transition hover:bg-[#F6F2E9] disabled:cursor-not-allowed disabled:opacity-45 dark:border-[#252C3D] dark:bg-[#131722] dark:text-[#F5F0E6] dark:hover:bg-[#1C2230]"
+            >
+              <ChevronLeft className="h-4 w-4" /> Previous
+            </button>
+            <span className="min-w-16 text-center text-xs font-semibold text-[#6E675F] dark:text-[#B8B2A6]">
+              {page + 1} / {pageCount}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.min(pageCount - 1, current + 1))}
+              disabled={page >= pageCount - 1}
+              aria-label="Show next floors"
+              className="inline-flex min-h-10 items-center justify-center gap-1 rounded-xl border border-[#E5DEC9] bg-white px-3 py-2 text-sm font-semibold text-[#5C5549] transition hover:bg-[#F6F2E9] disabled:cursor-not-allowed disabled:opacity-45 dark:border-[#252C3D] dark:bg-[#131722] dark:text-[#F5F0E6] dark:hover:bg-[#1C2230]"
+            >
+              Next <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {floors.map((f) => {
-          const occupiedCount = f.units.filter((u) => u.status === "occupied").length;
+        {visibleFloors.map((f) => {
+          const occupiedCount = f.units.filter((u) => (u.occupancyStatus || u.status) === "occupied").length;
           return (
             <div
               key={f.key || f.floor}
@@ -52,7 +87,7 @@ export function FloorMatrix({ floors = [] }) {
               </div>
               <div className="grid grid-cols-4 gap-2">
                 {f.units.map((u) => {
-                  const isOccupied = u.status === "occupied";
+                  const isOccupied = (u.occupancyStatus || u.status) === "occupied";
                   const pStatus = u.currentMonthPaymentStatus;
                   const pillClass = !isOccupied
                     ? "border-[#E2D9C5] dark:border-[#242B3D] bg-white dark:bg-[#131722] text-[#6E675F] dark:text-[#9A9488]"
@@ -70,7 +105,7 @@ export function FloorMatrix({ floors = [] }) {
                       title={`${u.unitNumber} · ${
                         u.tenant ? u.tenant.fullName : "Vacant"
                       } · ${formatCurrency(u.rentAmount)}`}
-                      className={`rounded-xl border px-2 py-2 text-center transition-transform hover:-translate-y-0.5 ${pillClass}`}
+                      className={`min-w-0 rounded-xl border px-1.5 py-2 text-center transition-transform hover:-translate-y-0.5 sm:px-2 ${pillClass}`}
                     >
                       <p className="text-xs font-bold">{u.unitNumber}</p>
                       <p className="mt-0.5 truncate text-[10px] opacity-85">

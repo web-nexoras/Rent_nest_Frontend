@@ -1,6 +1,5 @@
 import React from "react";
 import { Modal } from "@/components/common/Modal.jsx";
-import { Button } from "@/components/common/Button.jsx";
 import { Input, Select } from "@/components/common/Input.jsx";
 import { formatCurrency } from "@/utils/helpers.js";
 
@@ -37,7 +36,6 @@ export function TenantFormModal({
         <Input
           label="Full Legal Name"
           required
-          placeholder="e.g. Tanvir Ahmed"
           value={form.fullName}
           onChange={(e) => setForm((s) => ({ ...s, fullName: e.target.value }))}
         />
@@ -46,14 +44,12 @@ export function TenantFormModal({
             label="Email Address"
             type="email"
             required
-            placeholder="tanvir@example.com"
             value={form.email}
             onChange={(e) => setForm((s) => ({ ...s, email: e.target.value }))}
           />
           <Input
             label="Mobile Number (BD)"
             required
-            placeholder="017XXXXXXXX"
             value={form.phone}
             onChange={(e) => setForm((s) => ({ ...s, phone: e.target.value }))}
           />
@@ -67,13 +63,11 @@ export function TenantFormModal({
             }
             type="password"
             required={!isEdit}
-            placeholder={isEdit ? "Leave blank to keep unchanged" : "Min 6 characters"}
             value={form.password}
             onChange={(e) => setForm((s) => ({ ...s, password: e.target.value }))}
           />
           <Input
             label="National ID / Passport"
-            placeholder="NID or Passport number"
             value={form.nationalId}
             onChange={(e) => setForm((s) => ({ ...s, nationalId: e.target.value }))}
           />
@@ -81,13 +75,11 @@ export function TenantFormModal({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input
             label="Occupation / Profession"
-            placeholder="e.g. Software Engineer"
             value={form.occupation}
             onChange={(e) => setForm((s) => ({ ...s, occupation: e.target.value }))}
           />
           <Input
             label="Emergency Contact / NID Address"
-            placeholder="e.g. Road 12, Banani, Dhaka"
             value={form.address}
             onChange={(e) => setForm((s) => ({ ...s, address: e.target.value }))}
           />
@@ -113,22 +105,22 @@ export function TenantFormModal({
           ))}
         </Select>
 
-        <div className="flex items-center justify-end gap-2 pt-3">
-          <Button
+        <div className="flex flex-col-reverse gap-2 pt-3 sm:flex-row sm:justify-end">
+          <button
             type="button"
-            variant="secondary"
+            className="min-h-10 w-full rounded-xl border border-[#E5DEC9] bg-white px-4 py-2 text-sm font-semibold text-[#141413] hover:bg-[#F6F2E9] disabled:opacity-50 sm:w-auto dark:border-[#252C3D] dark:bg-[#131722] dark:text-[#F5F0E6]"
             onClick={onClose}
             disabled={saving}
           >
             Cancel
-          </Button>
-          <Button
+          </button>
+          <button
             type="submit"
-            variant="primary"
-            isLoading={saving}
+            className="min-h-10 w-full rounded-xl bg-[#141413] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2A2927] disabled:opacity-50 sm:w-auto dark:bg-[#D4AF37] dark:text-[#0B0D11]"
+            disabled={saving}
           >
             {isEdit ? "Save Changes" : "Onboard Resident"}
-          </Button>
+          </button>
         </div>
       </form>
     </Modal>

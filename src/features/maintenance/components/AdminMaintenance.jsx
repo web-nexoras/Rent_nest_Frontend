@@ -30,7 +30,9 @@ const CATEGORIES = ["plumbing", "electrical", "gas", "other"];
 
 function DetailModal({ request, onClose, onDelete }) {
   const [status, setStatus] = useState("pending");
-  useEffect(() => request && setStatus(request.status), [request]);
+  useEffect(() => {
+    if (request) setStatus(request.status);
+  }, [request]);
 
   const update = useApiMutation((value) => updateMaintenanceStatus(request._id, value), {
     invalidate: [["maintenance"], ["admin"]],

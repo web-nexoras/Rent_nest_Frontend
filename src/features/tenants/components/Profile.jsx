@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 import { PageHeader, Card } from "@/components/common/Layout.jsx";
 import { Input, Textarea } from "@/components/common/Input.jsx";
-import { Button } from "@/components/common/Button.jsx";
 import { Badge } from "@/components/common/Badge.jsx";
 import { profileSchema } from "@/utils/validation.js";
 import { updateProfile } from "@/features/auth/api/authApi.js";
@@ -296,32 +295,27 @@ export default function Profile() {
 
           {/* Clean Responsive Action Bar */}
           <div className="grid grid-cols-2 gap-3 pt-4 border-t border-[#EFE9DC] dark:border-[#1E2433] sm:flex sm:justify-end">
-            <Button
+            <button
               type="button"
-              variant="secondary"
-              size="md"
+              className="min-h-10 w-full min-w-0 rounded-xl border border-[#E5DEC9] bg-white px-3 py-2 text-sm font-semibold text-[#141413] transition hover:bg-[#F6F2E9] disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#252C3D] dark:bg-[#131722] dark:text-[#F5F0E6] dark:hover:bg-[#1C2230] sm:w-auto"
               onClick={() => {
                 reset();
                 setSelectedFile(null);
                 setPreviewImage(user?.profileImage || null);
               }}
               disabled={!isDirty && !selectedFile}
-              className="w-full whitespace-nowrap sm:w-auto"
             >
               Reset Form
-            </Button>
+            </button>
 
-            <Button
+            <button
               type="submit"
-              variant="primary"
-              size="md"
-              leftIcon={Save}
-              isLoading={mutation.isPending}
-              disabled={!isDirty && !selectedFile}
-              className="w-full whitespace-nowrap sm:w-auto"
+              className="inline-flex min-h-10 w-full min-w-0 items-center justify-center gap-2 rounded-xl bg-[#141413] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#2A2927] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#D4AF37] dark:text-[#0B0D11] sm:w-auto"
+              disabled={mutation.isPending || (!isDirty && !selectedFile)}
             >
+              <Save className="h-4 w-4 shrink-0" />
               Save Changes
-            </Button>
+            </button>
           </div>
         </form>
       </Card>

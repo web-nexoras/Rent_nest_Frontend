@@ -80,7 +80,7 @@ export function Modal({
             )}
             <div className="px-4 py-4 max-h-[70vh] overflow-y-auto sm:px-6 sm:py-5 sm:max-h-[78vh]">{children}</div>
             {footer && (
-              <div className="flex flex-col gap-2 border-t border-[#EFE9DC] dark:border-[#1E2433] bg-[#FAF7F2]/80 dark:bg-[#0E1117]/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-2.5 sm:px-6 sm:py-3.5">
+              <div className="flex flex-col items-stretch gap-2 border-t border-[#EFE9DC] dark:border-[#1E2433] bg-[#FAF7F2]/80 dark:bg-[#0E1117]/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-2.5 sm:px-6 sm:py-3.5 [&>button]:w-full sm:[&>button]:w-auto">
                 {footer}
               </div>
             )}
