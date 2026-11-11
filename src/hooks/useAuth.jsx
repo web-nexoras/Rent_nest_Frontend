@@ -6,7 +6,11 @@ import {
   useMemo,
   useState,
 } from "react";
-import { authApi as authService } from "@/features/auth/authApi.js";
+import {
+  getProfile,
+  logout as logoutRequest,
+  signin as signinRequest,
+} from "@/features/auth/api/authApi.js";
 import { setSessionExpiredHandler } from "@/lib/apiClient.js";
 import { queryClient } from "@/lib/queryClient.js";
 
@@ -41,8 +45,7 @@ export function AuthProvider({ children }) {
   // A 401 here is retried once through the refresh-token interceptor.
   useEffect(() => {
     let active = true;
-    authService
-      .getProfile()
+    getProfile()
       .then((data) => active && setUser(normalizeUser(data.user)))
       .catch(() => active && setUser(null))
       .finally(() => active && setLoading(false));
@@ -57,8 +60,8 @@ export function AuthProvider({ children }) {
   }, [clearSession]);
 
   const signin = useCallback(async (credentials) => {
-    await authService.signin(credentials);
-    const data = await authService.getProfile();
+    await signinRequest(credentials);
+    const data = await getProfile();
     const norm = normalizeUser(data.user);
     setUser(norm);
     return norm;
@@ -66,14 +69,14 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(async () => {
     try {
-      await authService.logout();
+      await logoutRequest();
     } finally {
       clearSession();
     }
   }, [clearSession]);
 
   const refreshProfile = useCallback(async () => {
-    const data = await authService.getProfile();
+    const data = await getProfile();
     const norm = normalizeUser(data.user);
     setUser(norm);
     return norm;

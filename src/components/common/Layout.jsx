@@ -1,6 +1,6 @@
 import React from "react";
 import { Inbox } from "lucide-react";
-import { cn, initials } from "@/utils/index.js";
+import { cn, initials } from "@/utils/helpers.js";
 
 export function PageHeader({ eyebrow, title, description, actions, badge, className }) {
   return (

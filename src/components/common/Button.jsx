@@ -1,6 +1,6 @@
 import React from "react";
 import { Loader2 } from "lucide-react";
-import { cn } from "@/utils/index.js";
+import { cn } from "@/utils/helpers.js";
 
 const variants = {
   primary:

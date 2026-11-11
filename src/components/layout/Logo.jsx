@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { cn } from "@/utils/index.js";
+import { cn } from "@/utils/helpers.js";
 
 // Royal Crest RN Monogram with Golden Laurel Wreaths matching the Luxury Ivory & Gold reference
 export function Logo({ className = "", stacked = false, to = "/" }) {

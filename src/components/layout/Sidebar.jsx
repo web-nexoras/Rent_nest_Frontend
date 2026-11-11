@@ -4,7 +4,7 @@ import { LogOut, ShieldCheck, X } from "lucide-react";
 import { Logo } from "@/components/layout/Logo.jsx";
 import { adminNavigation, tenantNavigation } from "@/lib/constants.js";
 import { useAuth } from "@/hooks/useAuth.jsx";
-import { cn } from "@/utils/index.js";
+import { cn } from "@/utils/helpers.js";
 
 // Full-height Left Sidebar matching the Luxury Warm Parchment & Obsidian reference
 export function Sidebar({ isOpen, onClose }) {

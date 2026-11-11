@@ -16,7 +16,7 @@ import {
 import { useAuth } from "@/hooks/useAuth.jsx";
 import { useTheme } from "@/hooks/useTheme.jsx";
 import { adminNavigation, tenantNavigation } from "@/lib/constants.js";
-import { getInitials } from "@/utils/index.js";
+import { getInitials } from "@/utils/helpers.js";
 import { useNoticeBadge } from "@/hooks/useNoticeBadge.js";
 
 // Cute animated Sun/Moon + Stars theme toggle switch

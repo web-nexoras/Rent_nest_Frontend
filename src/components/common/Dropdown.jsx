@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { cn } from "@/utils/index.js";
+import { cn } from "@/utils/helpers.js";
 
 /** Click-outside aware dropdown with Framer Motion animation. */
 export default function Dropdown({ trigger, children, align = "right", className }) {

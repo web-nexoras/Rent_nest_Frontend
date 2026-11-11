@@ -8,7 +8,7 @@ Pure JavaScript: every component is `.jsx`, every other module is `.js`. No Type
 ## Requirements
 
 - Node.js 18+
-- The Rent Nest backend running (default `http://localhost:8000`, base path `/api/v1`)
+- The Rent Nest backend running (default `http://localhost:5000`, base path `/api/v1`)
 
 ## Installation
 
@@ -30,7 +30,7 @@ npm run preview          # serves dist/ on http://localhost:3000 (also proxies /
 | Variable            | Default                 | Purpose                                              |
 | ------------------- | ----------------------- | ---------------------------------------------------- |
 | `VITE_API_URL`      | `/api/v1`               | API base path (must equal the backend `BASE_URL`)    |
-| `VITE_PROXY_TARGET` | `http://localhost:8000` | Where Vite proxies `/api` in dev/preview             |
+| `VITE_PROXY_TARGET` | `http://localhost:5000` | Where Vite proxies `/api` in dev/preview             |
 | `VITE_DEV_PORT`     | `3000`                  | Dev server port                                      |
 
 **Why a proxy?** The backend authenticates with HTTP-only cookies (`accTkn` 15 min, `refTkn` 7 days). Proxying `/api` through Vite keeps the browser on a single origin, so cookies work without any CORS/SameSite trouble. `VITE_DEV_PORT` should match the backend `CLIENT_URL` (`http://localhost:3000`) because password-reset emails link to `CLIENT_URL/reset-password/:token`.

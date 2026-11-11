@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
-import { cn } from "@/utils/index.js";
+import { cn } from "@/utils/helpers.js";
 import { Button } from "@/components/common/Button.jsx";
 
 const sizeClasses = {

@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
-import { cn } from "@/utils/index.js";
+import { cn } from "@/utils/helpers.js";
 
 const iconToneStyles = {
   indigo:

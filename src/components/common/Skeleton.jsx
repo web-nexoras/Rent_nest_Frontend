@@ -1,4 +1,4 @@
-import { cn } from "@/utils/index.js";
+import { cn } from "@/utils/helpers.js";
 
 export function Skeleton({ className }) {
   return <div className={cn("animate-pulse rounded-lg bg-navy-100/70", className)} />;

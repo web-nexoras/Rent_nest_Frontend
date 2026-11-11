@@ -1,5 +1,5 @@
 import React from "react";
-import { cn } from "@/utils/index.js";
+import { cn } from "@/utils/helpers.js";
 
 const baseInputClasses =
   "w-full rounded-xl border border-[#E5DEC9] dark:border-[#252C3D] bg-white dark:bg-[#131722] px-3.5 py-2.5 text-sm text-[#141413] dark:text-[#F5F0E6] placeholder:text-[#968E82] dark:placeholder:text-[#6E7687] shadow-2xs transition-all duration-150 focus:border-[#C59B27] focus:outline-none focus:ring-2 focus:ring-[#C59B27]/20 disabled:bg-[#F6F2E9] dark:disabled:bg-[#0E1117] disabled:text-[#8C8479] disabled:cursor-not-allowed";

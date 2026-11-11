@@ -83,42 +83,40 @@ const toTenantBody = (payload = {}) => {
   return body;
 };
 
-// Tenant management endpoints (/admin/tenants)
-export const tenantApi = {
-  getTenants: (params) =>
-    api
-      .get("/admin/tenants", { params })
-      .then((r) => normalizeTenantResponse(r.data)),
-  listTenants: (params) =>
-    api
-      .get("/admin/tenants", { params })
-      .then((r) => normalizeTenantResponse(r.data)),
-  pendingUsers: () =>
-    api.get("/admin/pending").then((r) => {
-      const data = r.data;
-      return {
-        ...data,
-        pendingUsers: (data?.pendingUsers || []).map(normalizeTenant),
-      };
-    }),
-  createTenant: (payload) =>
-    api
-      .post("/admin/tenants/create", toTenantBody(payload))
-      .then((r) => r.data),
-  updateTenant: (id, payload) =>
-    api
-      .patch(`/admin/tenants/${id}`, toTenantBody(payload))
-      .then((r) => r.data),
-  removeTenant: (id) => api.delete(`/admin/tenants/${id}`).then((r) => r.data),
-  toggleActive: (id) =>
-    api.patch(`/admin/tenants/${id}/toggle-active`).then((r) => r.data),
-  updateApproval: (id, approvalStatus, unitId) =>
-    api
-      .patch(`/admin/tenants/${id}/approval`, {
-        approvalStatus,
-        ...(unitId ? { unitId } : {}),
-      })
-      .then((r) => r.data),
-};
+export const getTenants = (params) =>
+  api
+    .get("/admin/tenants", { params })
+    .then((response) => normalizeTenantResponse(response.data));
 
-export default tenantApi;
+export const getPendingUsers = () =>
+  api.get("/admin/pending").then((response) => {
+    const data = response.data;
+    return {
+      ...data,
+      pendingUsers: (data?.pendingUsers || []).map(normalizeTenant),
+    };
+  });
+
+export const createTenant = (payload) =>
+  api
+    .post("/admin/tenants/create", toTenantBody(payload))
+    .then((response) => response.data);
+
+export const updateTenant = (id, payload) =>
+  api
+    .patch(`/admin/tenants/${id}`, toTenantBody(payload))
+    .then((response) => response.data);
+
+export const deleteTenant = (id) =>
+  api.delete(`/admin/tenants/${id}`).then((response) => response.data);
+
+export const toggleTenantActive = (id) =>
+  api.patch(`/admin/tenants/${id}/toggle-active`).then((response) => response.data);
+
+export const updateTenantApproval = (id, approvalStatus, unitId) =>
+  api
+    .patch(`/admin/tenants/${id}/approval`, {
+      approvalStatus,
+      ...(unitId ? { unitId } : {}),
+    })
+    .then((response) => response.data);

@@ -1,7 +1,7 @@
 import React from "react";
 import { EmptyState, Skeleton } from "@/components/common/Layout.jsx";
 import { ErrorState } from "@/components/feedback/States.jsx";
-import { cn } from "@/utils/index.js";
+import { cn } from "@/utils/helpers.js";
 
 const hideClasses = {
   sm: "hidden sm:table-cell",

@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { formatCurrency } from "@/utils/index.js";
+import { formatCurrency } from "@/utils/helpers.js";
 
 const MONTH_SHORT = [
   "Jan",

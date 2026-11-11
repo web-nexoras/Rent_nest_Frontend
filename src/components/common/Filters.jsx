@@ -1,6 +1,6 @@
 import React from "react";
 import { Search, X } from "lucide-react";
-import { cn } from "@/utils/index.js";
+import { cn } from "@/utils/helpers.js";
 
 export function SearchInput({
   value,
