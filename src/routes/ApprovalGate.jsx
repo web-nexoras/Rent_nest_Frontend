@@ -1,9 +1,9 @@
 import { Outlet } from "react-router-dom";
 import { Clock, ShieldX, RefreshCw } from "lucide-react";
-import { useAuth } from "../context/AuthContext.jsx";
-import { Card } from "../components/ui/Layout.jsx";
+import { useAuth } from "@/hooks/useAuth.jsx";
+import { Card } from "@/components/common/Layout.jsx";
 import { useState } from "react";
-import { useToast } from "../context/ToastContext.jsx";
+import { useToast } from "@/components/feedback/ToastContext.jsx";
 
 /**
  * Backend rule (requireApproved): pending/rejected tenants can sign in and see their

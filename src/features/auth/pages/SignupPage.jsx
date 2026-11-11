@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, Phone, User } from "lucide-react";
-import { authApi } from "../../../api/auth/authApi";
-import { useToast } from "../../../context/ToastContext";
-import { getErrorMessage } from "../../../lib/utils";
+import { authApi } from "@/features/auth/authApi.js";
+import { useToast } from "@/components/feedback/ToastContext.jsx";
+import { getErrorMessage } from "@/utils/index.js";
 
 // Clean & Minimalist Signup Page
 export default function SignupPage() {
@@ -15,7 +15,6 @@ export default function SignupPage() {
     email: "",
     phone: "",
     password: "",
-    role: "tenant",
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,6 +32,8 @@ export default function SignupPage() {
       errs.name = "Full name is required";
     } else if (name.length < 3) {
       errs.name = "Name must be at least 3 characters";
+    } else if (name.length > 25) {
+      errs.name = "Name must not exceed 25 characters";
     }
 
     if (!email) {
@@ -117,6 +118,7 @@ export default function SignupPage() {
               type="text"
               value={formData.name}
               onChange={handleChange}
+              maxLength={25}
               placeholder="Enter full name"
               className={`w-full rounded-xl border bg-white dark:bg-[#0B0D11] py-2.5 pl-10 pr-4 text-sm text-[#141413] dark:text-[#F5F0E6] placeholder-[#8C8479] outline-none transition focus:ring-1 ${
                 errors.name
@@ -187,61 +189,40 @@ export default function SignupPage() {
           </div>
         </div>
 
-        {/* Password & Role Grid */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-xs font-semibold uppercase tracking-wider text-[#5C5549] dark:text-[#B8B2A6] mb-1.5"
-            >
-              Password
-            </label>
-            <div className="relative">
-              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#8C8479]">
-                <Lock className="h-4 w-4" />
-              </span>
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Create password"
-                className={`w-full rounded-xl border bg-white dark:bg-[#0B0D11] py-2.5 pl-10 pr-10 text-sm text-[#141413] dark:text-[#F5F0E6] placeholder-[#8C8479] outline-none transition focus:ring-1 ${
-                  errors.password
-                    ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500"
-                    : "border-[#E5DEC9] dark:border-[#252C3D] focus:border-[#C59B27] focus:ring-[#C59B27]"
-                }`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((p) => !p)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-[#8C8479] hover:text-[#141413] dark:hover:text-white"
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-            {errors.password && <p className="mt-1 text-xs text-rose-500">{errors.password}</p>}
-          </div>
-
-          <div>
-            <label
-              htmlFor="role"
-              className="block text-xs font-semibold uppercase tracking-wider text-[#5C5549] dark:text-[#B8B2A6] mb-1.5"
-            >
-              Role
-            </label>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
+        {/* Password */}
+        <div>
+          <label
+            htmlFor="password"
+            className="block text-xs font-semibold uppercase tracking-wider text-[#5C5549] dark:text-[#B8B2A6] mb-1.5"
+          >
+            Password
+          </label>
+          <div className="relative">
+            <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#8C8479]">
+              <Lock className="h-4 w-4" />
+            </span>
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              value={formData.password}
               onChange={handleChange}
-              className="w-full rounded-xl border border-[#E5DEC9] dark:border-[#252C3D] bg-white dark:bg-[#0B0D11] py-2.5 px-3.5 text-sm text-[#141413] dark:text-[#F5F0E6] outline-none transition focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27]"
+              placeholder="Create password"
+              className={`w-full rounded-xl border bg-white dark:bg-[#0B0D11] py-2.5 pl-10 pr-10 text-sm text-[#141413] dark:text-[#F5F0E6] placeholder-[#8C8479] outline-none transition focus:ring-1 ${
+                errors.password
+                  ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500"
+                  : "border-[#E5DEC9] dark:border-[#252C3D] focus:border-[#C59B27] focus:ring-[#C59B27]"
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((p) => !p)}
+              className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-[#8C8479] hover:text-[#141413] dark:hover:text-white"
             >
-              <option value="tenant">Resident</option>
-              <option value="admin">Admin</option>
-            </select>
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
+          {errors.password && <p className="mt-1 text-xs text-rose-500">{errors.password}</p>}
         </div>
 
         {/* Submit Button */}

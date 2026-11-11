@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "../context/ToastContext.jsx";
-import { getErrorMessage } from "../lib/axios.js";
+import { useToast } from "@/components/feedback/ToastContext.jsx";
+import { getErrorMessage } from "@/lib/apiClient.js";
 
 /**
  * Mutation wrapper: shows a success/error toast and invalidates the given query keys.

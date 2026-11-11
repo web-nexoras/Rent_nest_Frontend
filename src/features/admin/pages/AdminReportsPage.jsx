@@ -1,27 +1,53 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Banknote, CircleDollarSign, Home, Wallet } from "lucide-react";
-import { PageHeader, Avatar } from "../../../components/ui/Layout.jsx";
-import StatCard from "../../../components/ui/StatCard.jsx";
-import Badge from "../../../components/ui/Badge.jsx";
-import DataTable from "../../../components/ui/DataTable.jsx";
-import { EmptyState } from "../../../components/ui/States.jsx";
-import { paymentService } from "../../../services/paymentService.js";
-import { currentMonth, formatMoney, formatMonth } from "../../../lib/utils.js";
+import {
+  AlertTriangle,
+  Banknote,
+  BellRing,
+  CircleDollarSign,
+  Home,
+  Wallet,
+} from "lucide-react";
+import { PageHeader, Avatar } from "@/components/common/Layout.jsx";
+import StatCard from "@/components/common/StatCard.jsx";
+import Badge from "@/components/common/Badge.jsx";
+import Button from "@/components/common/Button.jsx";
+import DataTable from "@/components/common/DataTable.jsx";
+import { EmptyState } from "@/components/feedback/States.jsx";
+import { paymentApi } from "@/features/payments/paymentApi.js";
+import { useApiMutation } from "@/hooks/useApiMutation.js";
+import { currentMonth, formatMoney, formatMonth } from "@/utils/index.js";
+
+const OVERDUE_STAGES = {
+  overdue_past_10th: { tone: "danger", label: "Overdue (Past 10th)" },
+  past_due_day: { tone: "warning", label: "Past Due Day" },
+  due_before_10th: { tone: "warning", label: "Due (Before 10th)" },
+};
 
 export default function AdminReportsPage() {
   const [month, setMonth] = useState(currentMonth());
 
   const report = useQuery({
     queryKey: ["payments", "report", month],
-    queryFn: () => paymentService.monthlyReport({ month }),
+    queryFn: () => paymentApi.monthlyReport({ month }),
     enabled: Boolean(month),
   });
   const overdue = useQuery({
     queryKey: ["payments", "overdue", month],
-    queryFn: () => paymentService.overdue({ month }),
+    queryFn: () => paymentApi.overdue({ month }),
     enabled: Boolean(month),
   });
+
+  const remind = useApiMutation(
+    ({ tenantId, reminderMonth }) =>
+      paymentApi.remindTenant(tenantId, { month: reminderMonth }),
+    {
+      invalidate: [
+        ["payments", "overdue"],
+        ["payments", "report"],
+      ],
+    }
+  );
 
   const totals = report.data?.totals;
 
@@ -31,10 +57,10 @@ export default function AdminReportsPage() {
       header: "Tenant",
       render: (row) => (
         <div className="flex items-center gap-3">
-          <Avatar name={row.tenant.name} size="sm" />
+          <Avatar name={row.tenant?.name || row.tenant?.fullName || "Resident"} size="sm" />
           <div>
-            <p className="font-semibold text-navy-900">{row.tenant.name}</p>
-            <p className="text-xs text-navy-400">{row.tenant.email}</p>
+            <p className="font-semibold text-navy-900">{row.tenant?.name || row.tenant?.fullName || "—"}</p>
+            <p className="text-xs text-navy-400">{row.tenant?.email || "—"}</p>
           </div>
         </div>
       ),
@@ -75,7 +101,40 @@ export default function AdminReportsPage() {
     { key: "phone", header: "Phone", hideOn: "md" },
     { key: "unit", header: "Unit", render: (row) => <span className="font-semibold text-navy-800">Unit {row.assignedUnit?.unitNumber || "—"}</span> },
     { key: "rent", header: "Rent Due", render: (row) => <span className="font-display font-bold tabular text-rose-600">{formatMoney(row.assignedUnit?.rentAmount)}</span> },
-    { key: "status", header: "Status", render: () => <Badge status="overdue" /> },
+    {
+      key: "stage",
+      header: "Stage",
+      render: (row) => {
+        const stage = OVERDUE_STAGES[row.overdueStage] || OVERDUE_STAGES.due_before_10th;
+        return <Badge tone={stage.tone}>{stage.label}</Badge>;
+      },
+    },
+    {
+      key: "reminders",
+      header: "Reminded",
+      hideOn: "md",
+      render: (row) => (
+        <span className="text-xs text-navy-500">
+          {row.reminderCount > 0 ? `${row.reminderCount}×` : "—"}
+        </span>
+      ),
+    },
+    {
+      key: "action",
+      header: "",
+      align: "right",
+      render: (row) => (
+        <Button
+          variant="secondary"
+          size="xs"
+          leftIcon={BellRing}
+          isLoading={remind.isPending && remind.variables?.tenantId === row._id}
+          onClick={() => remind.mutate({ tenantId: row._id, reminderMonth: month })}
+        >
+          Remind
+        </Button>
+      ),
+    },
   ];
 
   return (
@@ -103,33 +162,29 @@ export default function AdminReportsPage() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Collected (Verified)"
-          value={totals && formatMoney(totals.collectedAmount)}
+          value={totals ? formatMoney(totals.collectedAmount) : "—"}
           icon={Banknote}
           tone="emerald"
-          loading={report.isLoading}
           badge={formatMonth(month)}
         />
         <StatCard
           label="Total Submitted"
-          value={totals && formatMoney(totals.submittedAmount)}
+          value={totals ? formatMoney(totals.submittedAmount) : "—"}
           icon={Wallet}
           tone="brand"
-          loading={report.isLoading}
           hint={totals ? `${totals.paymentCount} payment${totals.paymentCount === 1 ? "" : "s"} logged` : undefined}
         />
         <StatCard
           label="Outstanding Balance"
-          value={totals && formatMoney(totals.outstandingAmount)}
+          value={totals ? formatMoney(totals.outstandingAmount) : "—"}
           icon={AlertTriangle}
           tone="rose"
-          loading={report.isLoading}
         />
         <StatCard
           label="Active Leases"
-          value={totals?.activeUnits}
+          value={totals?.activeUnits ?? "—"}
           icon={Home}
           tone="accent"
-          loading={report.isLoading}
         />
       </div>
 

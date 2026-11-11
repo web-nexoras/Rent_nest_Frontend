@@ -5,32 +5,32 @@ import {
   ArrowUpRight,
   BellRing,
   Building2,
-  CheckCircle2,
   ChevronRight,
   CreditCard,
   DollarSign,
   Layers,
   Plus,
   Sparkles,
-  Users,
   Wrench,
 } from "lucide-react";
-import { dashboardService } from "../../../services/dashboardService";
-import { unitService } from "../../../services/unitService";
-import { paymentService } from "../../../services/paymentService";
-import { useToast } from "../../../components/ui/Toast";
-import { PageHeader, Card, CardHeader, Skeleton } from "../../../components/ui/Layout";
-import { StatCard } from "../../../components/ui/StatCard";
-import { Badge } from "../../../components/ui/Badge";
-import { Button } from "../../../components/ui/Button";
-import { RevenueChart } from "../../../components/ui/RevenueChart";
+import { adminDashboardApi } from "@/features/admin/dashboardApi.js";
+import { unitApi } from "@/features/units/unitApi.js";
+import { paymentApi } from "@/features/payments/paymentApi.js";
+import { useToast } from "@/components/feedback/Toast.jsx";
+import { PageHeader, Card, CardHeader, Skeleton } from "@/components/common/Layout.jsx";
+import { StatCard } from "@/components/common/StatCard.jsx";
+import { Badge } from "@/components/common/Badge.jsx";
+import { Button } from "@/components/common/Button.jsx";
+import { RevenueChart } from "@/components/common/RevenueChart.jsx";
 import {
   formatCurrency,
   formatDate,
+  formatFloor,
   formatMonthLabel,
   getErrorMessage,
   getInitials,
-} from "../../../lib/utils";
+  parseFloor,
+} from "@/utils/index.js";
 
 // Luxury Dossier Admin Dashboard with 48-Unit Matrix & Dark Obsidian Financial Card
 export default function AdminDashboardPage() {
@@ -47,8 +47,8 @@ export default function AdminDashboardPage() {
     try {
       setLoading(true);
       const [dashRes, matrixRes] = await Promise.all([
-        dashboardService.getAdminDashboard(),
-        unitService.statusMatrix().catch(() => null),
+        adminDashboardApi.getAdminDashboard(),
+        unitApi.statusMatrix().catch(() => null),
       ]);
       setData(dashRes);
       setMatrix(matrixRes);
@@ -66,7 +66,7 @@ export default function AdminDashboardPage() {
   const handleSeedBuilding = async () => {
     try {
       setSeeding(true);
-      const res = await unitService.seedBuilding();
+      const res = await unitApi.seedBuilding();
       toast.success(
         res?.message || "48 luxury units (A-101 to L-1204) initialized!",
         "Tower Seeded"
@@ -82,7 +82,7 @@ export default function AdminDashboardPage() {
   const handleRemindAll = async () => {
     try {
       setRemindingAll(true);
-      const res = await paymentService.remindAll({ month: data?.currentMonth });
+      const res = await paymentApi.remindAll({ month: data?.month });
       toast.success(
         res?.message || "Overdue & due reminders dispatched to unpaid residents.",
         "Reminders Dispatched"
@@ -98,8 +98,8 @@ export default function AdminDashboardPage() {
   const handleRemindSingle = async (tenantId) => {
     try {
       setRemindingId(tenantId);
-      const res = await paymentService.remindTenant(tenantId, {
-        month: data?.currentMonth,
+      const res = await paymentApi.remindTenant(tenantId, {
+        month: data?.month,
       });
       toast.success(res?.message || "Payment reminder sent to tenant.", "Reminder Sent");
       await loadDashboard();
@@ -113,7 +113,7 @@ export default function AdminDashboardPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-12 w-72" />
+        <Skeleton className="h-12 w-2/3" />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
             <Skeleton key={i} className="h-32" />
@@ -125,9 +125,10 @@ export default function AdminDashboardPage() {
   }
 
   const stats = data?.stats || {};
-  const currentMonth = data?.month || data?.currentMonth;
-  const isPastOverdue = data?.isPast10th ?? data?.isPastOverdueCutoff ?? (new Date().getDate() > 10);
-  const daysUntilCutoff = Math.max(0, 10 - (data?.dayOfMonth || new Date().getDate()));
+  const currentMonth = data?.month || matrix?.month;
+  const isPastOverdue = data?.isPast10th ?? matrix?.isPast10th ?? false;
+  const dayOfMonth = data?.dayOfMonth ?? matrix?.dayOfMonth ?? new Date().getDate();
+  const daysUntilCutoff = Math.max(0, 10 - dayOfMonth);
   const matrixSummary = matrix?.summary || {};
   const totalUnitsCount = stats.totalUnits ?? matrixSummary.totalUnits ?? 0;
   const occupiedCount = stats.occupiedUnits ?? matrixSummary.occupiedUnits ?? 0;
@@ -137,50 +138,81 @@ export default function AdminDashboardPage() {
   const monthlyCollected = stats.thisMonthCollection ?? matrixSummary.collectedRevenue ?? 0;
   const expectedMonthlyRent = stats.expectedMonthlyRevenue ?? matrixSummary.expectedRevenue ?? 0;
   const collectionRate = expectedMonthlyRent > 0 ? Math.round((monthlyCollected / expectedMonthlyRent) * 100) : 0;
-  const pendingPaymentCount = stats.pendingPaymentCount ?? 0;
+  const pendingPaymentCount = stats.pendingPaymentCount ?? matrixSummary.pendingUnits ?? 0;
   const unpaidCount = stats.unpaidUnitsCount ?? matrixSummary.unpaidUnits ?? 0;
   const pendingMaintenanceCount = stats.pendingMaintenanceCount ?? 0;
-  const recentPayments = data?.recentPayments || [];
 
-  const overdueTenants = (matrix?.units || [])
-    .filter((u) => u.occupancyStatus === "occupied" && (u.isOverdue || u.paymentStatus === "overdue" || u.paymentStatus === "due" || u.paymentStatus === "due_alert"))
+  const occupiedUnits = (matrix?.units || []).filter(
+    (u) => u.occupancyStatus === "occupied"
+  );
+
+  const toResident = (unit) => {
+    const tenant = unit.assignedTenant || unit.tenant;
+    if (!tenant) return null;
+    return {
+      _id: tenant._id,
+      fullName: tenant.fullName || tenant.name || "Resident",
+      email: tenant.email,
+      phone: tenant.phone,
+    };
+  };
+
+  const overdueTenants = occupiedUnits
+    .filter(
+      (u) =>
+        u.isOverdue ||
+        ["overdue", "due", "due_alert"].includes(u.paymentStatus)
+    )
     .map((u) => ({
       unitId: u._id,
       unitNumber: u.unitNumber,
       rentAmount: u.rentAmount,
       paymentStatus: u.paymentStatus,
       reminderCount: u.reminder?.reminderCount || 0,
-      tenant: u.assignedTenant ? {
-        _id: u.assignedTenant._id,
-        fullName: u.assignedTenant.name || u.assignedTenant.fullName,
-        email: u.assignedTenant.email,
-        phone: u.assignedTenant.phone,
-      } : null,
+      tenant: toResident(u),
     }));
 
-  const rawUnits = matrix?.units || [];
+  const settledUnits = occupiedUnits
+    .filter((u) => u.paymentStatus === "paid")
+    .map((u) => ({
+      unitId: u._id,
+      unitNumber: u.unitNumber,
+      rentAmount: u.payment?.amount ?? u.rentAmount,
+      paymentStatus: "paid",
+      paidAt: u.payment?.paidAt || u.payment?.verifiedAt || null,
+      tenant: toResident(u),
+    }));
+
+  const showingSettled = overdueTenants.length === 0;
+  const complianceRows = showingSettled ? settledUnits : overdueTenants;
+
   const floorsMap = new Map();
-  rawUnits.forEach((u) => {
-    const fNum = u.floor || "1";
-    if (!floorsMap.has(fNum)) {
-      floorsMap.set(fNum, []);
+  (matrix?.units || []).forEach((u) => {
+    const { code, level } = parseFloor(u.floor, u.unitNumber);
+    const key =
+      code && level > 0 ? `${level}-${code}` : `raw-${u.floor || "unassigned"}`;
+    if (!floorsMap.has(key)) {
+      floorsMap.set(key, { key, code, level, floorValue: u.floor, units: [] });
     }
-    floorsMap.get(fNum).push(u);
+    floorsMap.get(key).units.push({
+      ...u,
+      tenant: u.tenant || (u.assignedTenant ? {
+        ...u.assignedTenant,
+        fullName: u.assignedTenant.fullName || u.assignedTenant.name || "",
+      } : null),
+      currentMonthPaymentStatus: u.paymentStatus,
+    });
   });
-  const floors = Array.from(floorsMap.entries())
-    .map(([floor, fUnits]) => ({
-      floor,
-      floorCode: String.fromCharCode(64 + (parseInt(floor, 10) || 1)),
-      units: fUnits.map((u) => ({
-        ...u,
-        tenant: u.assignedTenant ? {
-          ...u.assignedTenant,
-          fullName: u.assignedTenant.name || u.assignedTenant.fullName,
-        } : null,
-        currentMonthPaymentStatus: u.paymentStatus,
-      })),
+  const floors = Array.from(floorsMap.values())
+    .map((floor) => ({
+      ...floor,
+      units: [...floor.units].sort((a, b) =>
+        String(a.unitNumber).localeCompare(String(b.unitNumber), undefined, {
+          numeric: true,
+        })
+      ),
     }))
-    .sort((a, b) => parseInt(a.floor, 10) - parseInt(b.floor, 10));
+    .sort((a, b) => a.level - b.level || a.code.localeCompare(b.code));
 
   return (
     <div className="space-y-7">
@@ -214,6 +246,7 @@ export default function AdminDashboardPage() {
               size="sm"
               leftIcon={BellRing}
               isLoading={remindingAll}
+              disabled={overdueTenants.length === 0}
               onClick={handleRemindAll}
             >
               Remind Unpaid ({overdueTenants.length})
@@ -347,8 +380,8 @@ export default function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F0EAE0] dark:divide-[#1C2230] text-sm">
-                {overdueTenants.length > 0 ? (
-                  overdueTenants.slice(0, 6).map((item) => (
+                {complianceRows.length > 0 ? (
+                  complianceRows.slice(0, 6).map((item) => (
                     <tr key={item.unitId} className="hover:bg-[#FAF7F2] dark:hover:bg-[#161B26]">
                       <td className="py-3.5 pr-3">
                         <div className="flex items-center gap-3">
@@ -357,10 +390,10 @@ export default function AdminDashboardPage() {
                           </div>
                           <div>
                             <p className="font-semibold text-[#141413] dark:text-[#F5F0E6]">
-                              {item.tenant?.fullName}
+                              {item.tenant?.fullName || "Resident"}
                             </p>
                             <p className="text-xs text-[#7A7267] dark:text-[#9A9488]">
-                              {item.tenant?.phone || item.tenant?.email}
+                              {item.tenant?.phone || item.tenant?.email || "—"}
                             </p>
                           </div>
                         </div>
@@ -375,54 +408,30 @@ export default function AdminDashboardPage() {
                         <Badge status={item.paymentStatus} />
                       </td>
                       <td className="py-3.5 pl-3 text-right">
-                        <Button
-                          variant="secondary"
-                          size="xs"
-                          leftIcon={BellRing}
-                          isLoading={remindingId === item.tenant?._id}
-                          onClick={() => handleRemindSingle(item.tenant?._id)}
-                        >
-                          Remind {item.reminderCount > 0 ? `(${item.reminderCount})` : ""}
-                        </Button>
-                      </td>
-                    </tr>
-                  ))
-                ) : recentPayments.length > 0 ? (
-                  recentPayments.slice(0, 5).map((p) => (
-                    <tr key={p._id} className="hover:bg-[#FAF7F2] dark:hover:bg-[#161B26]">
-                      <td className="py-3.5 pr-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#141413] text-xs font-bold text-[#D4AF37]">
-                            {getInitials(p.tenant?.fullName || "RN")}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-[#141413] dark:text-[#F5F0E6]">
-                              {p.tenant?.fullName || "Resident"}
-                            </p>
-                            <p className="text-xs text-[#7A7267] dark:text-[#9A9488]">
-                              {p.invoiceNumber}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-3 font-semibold">
-                        {p.unit?.unitNumber || "—"}
-                      </td>
-                      <td className="py-3.5 px-3 font-medium">
-                        {formatCurrency(p.amount)}
-                      </td>
-                      <td className="py-3.5 px-3">
-                        <Badge status={p.status} />
-                      </td>
-                      <td className="py-3.5 pl-3 text-right text-xs text-[#7A7267]">
-                        {formatDate(p.paidAt || p.createdAt)}
+                        {showingSettled ? (
+                          <span className="text-xs text-[#7A7267] dark:text-[#9A9488]">
+                            {formatDate(item.paidAt)}
+                          </span>
+                        ) : item.tenant?._id ? (
+                          <Button
+                            variant="secondary"
+                            size="xs"
+                            leftIcon={BellRing}
+                            isLoading={remindingId === item.tenant._id}
+                            onClick={() => handleRemindSingle(item.tenant._id)}
+                          >
+                            Remind {item.reminderCount > 0 ? `(${item.reminderCount})` : ""}
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-[#7A7267]">—</span>
+                        )}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td colSpan={5} className="py-8 text-center text-xs text-[#7A7267]">
-                      All occupied units are settled for {formatMonthLabel(currentMonth)}.
+                      No occupied units recorded for {formatMonthLabel(currentMonth)}.
                     </td>
                   </tr>
                 )}
@@ -511,6 +520,9 @@ export default function AdminDashboardPage() {
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FBF3DC] dark:bg-amber-950/40 px-2.5 py-1 text-[#8F6B14] dark:text-[#E2BE5C] font-medium">
                   <span className="h-2 w-2 rounded-full bg-[#C59B27]" /> Due
                 </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 dark:bg-sky-950/40 px-2.5 py-1 text-sky-700 dark:text-sky-300 font-medium">
+                  <span className="h-2 w-2 rounded-full bg-sky-500" /> Pending
+                </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 dark:bg-rose-950/40 px-2.5 py-1 text-rose-700 dark:text-rose-300 font-medium">
                   <span className="h-2 w-2 rounded-full bg-rose-500" /> Overdue
                 </span>
@@ -524,20 +536,20 @@ export default function AdminDashboardPage() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {floors.map((f) => (
               <div
-                key={f.floor}
+                key={f.key}
                 className="rounded-2xl border border-[#EAE1D0] dark:border-[#1E2433] bg-[#FAF7F2]/70 dark:bg-[#0E1117]/70 p-3.5"
               >
-                <div className="mb-2.5 flex items-center justify-between">
+                <div className="mb-2.5 flex items-center justify-between gap-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-[#141413] dark:text-[#D4AF37]">
-                    Floor {f.floorCode} (Level {f.floor})
+                    {formatFloor(f.floorValue, f.units[0]?.unitNumber)}
                   </span>
                   <span className="text-[11px] text-[#7A7267] dark:text-[#9A9488]">
-                    {f.units.filter((u) => u.status === "occupied").length}/{f.units.length} Occupied
+                    {f.units.filter((u) => u.occupancyStatus === "occupied").length}/{f.units.length} Occupied
                   </span>
                 </div>
                 <div className="grid grid-cols-4 gap-2">
                   {f.units.map((u) => {
-                    const isOccupied = u.status === "occupied";
+                    const isOccupied = u.occupancyStatus === "occupied";
                     const pStatus = u.currentMonthPaymentStatus;
                     const pillClass = !isOccupied
                       ? "border-[#E2D9C5] dark:border-[#242B3D] bg-white dark:bg-[#131722] text-[#6E675F] dark:text-[#9A9488]"
@@ -545,6 +557,8 @@ export default function AdminDashboardPage() {
                       ? "border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/90 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200"
                       : pStatus === "overdue"
                       ? "border-rose-300 dark:border-rose-500/40 bg-rose-50/90 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200"
+                      : pStatus === "pending"
+                      ? "border-sky-300 dark:border-sky-500/40 bg-sky-50/90 dark:bg-sky-950/40 text-sky-800 dark:text-sky-200"
                       : "border-[#D4AF37] bg-[#FBF3DC] dark:bg-amber-950/40 text-[#7A590E] dark:text-[#E2BE5C]";
 
                     return (

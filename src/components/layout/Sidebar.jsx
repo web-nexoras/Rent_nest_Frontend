@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { LogOut, ShieldCheck, X } from "lucide-react";
-import { Logo } from "./Logo";
-import { adminNavigation, tenantNavigation } from "./navigation";
-import { useAuth } from "../../context/AuthContext";
-import { cn } from "../../lib/utils";
+import { Logo } from "@/components/layout/Logo.jsx";
+import { adminNavigation, tenantNavigation } from "@/lib/constants.js";
+import { useAuth } from "@/hooks/useAuth.jsx";
+import { cn } from "@/utils/index.js";
 
 // Full-height Left Sidebar matching the Luxury Warm Parchment & Obsidian reference
 export function Sidebar({ isOpen, onClose }) {
@@ -14,7 +14,7 @@ export function Sidebar({ isOpen, onClose }) {
   const homePath = isAdmin ? "/admin/dashboard" : "/tenant/dashboard";
 
   const renderSidebarContent = () => (
-    <div className="flex h-full flex-col justify-between bg-[#F6F2E9] dark:bg-[#0E1117] border-r border-[#E4DAC8] dark:border-[#1E2433] px-5 py-6 select-none transition-colors duration-300">
+    <div className="flex h-full flex-col justify-between overflow-y-auto bg-[#F6F2E9] dark:bg-[#0E1117] border-r border-[#E4DAC8] dark:border-[#1E2433] px-5 py-6 select-none transition-colors duration-300">
       {/* Top Royal Crest Logo */}
       <div>
         <div className="relative flex flex-col items-center justify-center pb-6 pt-1 border-b border-[#E6DEC8]/80 dark:border-[#1E2433]">

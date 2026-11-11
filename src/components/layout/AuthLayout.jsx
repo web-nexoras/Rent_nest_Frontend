@@ -1,7 +1,7 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import { Logo } from "./Logo";
-import { CuteThemeToggle } from "./Topbar";
+import { Logo } from "@/components/layout/Logo.jsx";
+import { CuteThemeToggle } from "@/components/layout/Navbar.jsx";
 
 // Clean & Minimalist Luxury Auth Layout
 export function AuthLayout() {

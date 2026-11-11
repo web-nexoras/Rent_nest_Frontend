@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
-import { authApi } from "../../../api/auth/authApi";
-import { useToast } from "../../../context/ToastContext";
-import { getErrorMessage } from "../../../lib/utils";
+import { authApi } from "@/features/auth/authApi.js";
+import { useToast } from "@/components/feedback/ToastContext.jsx";
+import { getErrorMessage } from "@/utils/index.js";
 
 export default function ResetPasswordPage() {
   const { token } = useParams();

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Loader2, Mail, Send } from "lucide-react";
-import { authApi } from "../../../api/auth/authApi";
-import { useToast } from "../../../context/ToastContext";
-import { getErrorMessage } from "../../../lib/utils";
+import { authApi } from "@/features/auth/authApi.js";
+import { useToast } from "@/components/feedback/ToastContext.jsx";
+import { getErrorMessage } from "@/utils/index.js";
 
 export default function ForgotPasswordPage() {
   const toast = useToast();

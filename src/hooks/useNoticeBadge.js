@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
-import { noticeService } from "../services/noticeService.js";
-import { useAuth } from "../context/AuthContext.jsx";
+import { noticeApi } from "@/features/notices/noticeApi.js";
+import { useAuth } from "@/hooks/useAuth.jsx";
 
 const keyFor = (userId) => `rn_notice_seen_${userId}`;
 
@@ -14,7 +14,7 @@ export function useNoticeBadge() {
 
   const query = useQuery({
     queryKey: ["notices", "latest"],
-    queryFn: () => noticeService.list({ page: 1, limit: 1 }),
+    queryFn: () => noticeApi.list({ page: 1, limit: 1 }),
     enabled: Boolean(user),
     refetchInterval: 60000,
     refetchOnWindowFocus: true,

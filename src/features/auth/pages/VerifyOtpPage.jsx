@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Loader2, MailCheck } from "lucide-react";
-import { authApi } from "../../../api/auth/authApi";
-import { useToast } from "../../../context/ToastContext";
-import { getErrorMessage } from "../../../lib/utils";
+import { authApi } from "@/features/auth/authApi.js";
+import { useToast } from "@/components/feedback/ToastContext.jsx";
+import { getErrorMessage } from "@/utils/index.js";
 
 const RESEND_SECONDS = 60;
 

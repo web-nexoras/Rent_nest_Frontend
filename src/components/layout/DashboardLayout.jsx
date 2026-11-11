@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
-import { Sidebar } from "./Sidebar";
-import { Topbar } from "./Topbar";
+import { Sidebar } from "@/components/layout/Sidebar.jsx";
+import { Navbar } from "@/components/layout/Navbar.jsx";
 
 // Full-height Left Sidebar + Right-only Topbar & Responsive Workspace Canvas
 export function DashboardLayout() {
@@ -12,7 +12,7 @@ export function DashboardLayout() {
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex min-h-screen flex-col lg:pl-64">
-        <Topbar onOpenSidebar={() => setSidebarOpen(true)} />
+        <Navbar onOpenSidebar={() => setSidebarOpen(true)} />
 
         <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl space-y-6">

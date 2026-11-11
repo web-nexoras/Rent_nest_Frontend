@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowRight, Eye, EyeOff, Loader2, Lock, Phone } from "lucide-react";
-import { useAuth } from "../../../context/AuthContext";
-import { useToast } from "../../../context/ToastContext";
-import { getErrorMessage } from "../../../lib/utils";
+import { useAuth } from "@/hooks/useAuth.jsx";
+import { useToast } from "@/components/feedback/ToastContext.jsx";
+import { getErrorMessage } from "@/utils/index.js";
 
 // Clean & Minimalist Luxury Signin Page
 export default function SigninPage() {
