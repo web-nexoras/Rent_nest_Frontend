@@ -101,7 +101,9 @@ export function FloorMatrix({ floors = [] }) {
                     <button
                       key={u._id}
                       type="button"
-                      onClick={() => navigate("/admin/units")}
+                      onClick={() =>
+                        navigate(`/admin/units?search=${encodeURIComponent(u.unitNumber)}`)
+                      }
                       title={`${u.unitNumber} · ${
                         u.tenant ? u.tenant.fullName : "Vacant"
                       } · ${formatCurrency(u.rentAmount)}`}

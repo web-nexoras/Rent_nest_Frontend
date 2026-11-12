@@ -111,6 +111,7 @@ export default function AdminMaintenance() {
   const query = useQuery({
     queryKey: ["maintenance", "all", { status, category }],
     queryFn: () => listMaintenanceRequests({ status: status || undefined, category: category || undefined }),
+    refetchOnMount: "always",
   });
 
   const remove = useApiMutation((id) => deleteMaintenanceRequest(id), {
@@ -204,7 +205,7 @@ export default function AdminMaintenance() {
       <DataTable
         columns={columns}
         rows={pageRows}
-        loading={query.isLoading}
+        loading={query.isFetching}
         error={query.isError ? query.error : null}
         onRetry={query.refetch}
         empty={<EmptyState icon={Wrench} title="No maintenance requests" description="Requests submitted by tenants will show up here." />}

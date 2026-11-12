@@ -269,6 +269,7 @@ export default function AdminDashboard() {
           trend={`${occupancyRate}%`}
           icon={Building2}
           tone="indigo"
+          to="/admin/units"
         />
         <StatCard
           label="Monthly Collected"
@@ -277,6 +278,7 @@ export default function AdminDashboard() {
           trend={`${collectionRate}%`}
           icon={DollarSign}
           tone="emerald"
+          to={currentMonth ? `/admin/payments?status=verified&month=${currentMonth}` : "/admin/payments"}
         />
         <StatCard
           label="Unpaid / Overdue"
@@ -286,6 +288,7 @@ export default function AdminDashboard() {
           trendDirection={overdueTenants.length > 0 ? "down" : "up"}
           icon={AlertTriangle}
           tone="amber"
+          to="/admin/reports"
         />
         <StatCard
           label="Active Maintenance"
@@ -293,6 +296,7 @@ export default function AdminDashboard() {
           subtext="Pending repair tickets"
           icon={Wrench}
           tone="violet"
+          to="/admin/maintenance"
         />
       </div>
 

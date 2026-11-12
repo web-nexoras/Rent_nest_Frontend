@@ -96,8 +96,16 @@ export default function TenantMaintenance() {
   const [formOpen, setFormOpen] = useState(false);
   const [toDelete, setToDelete] = useState(null);
 
-  const unit = useQuery({ queryKey: ["tenant", "unit"], queryFn: getMyUnit });
-  const query = useQuery({ queryKey: ["tenant", "maintenance"], queryFn: getMyMaintenanceRequests });
+  const unit = useQuery({
+    queryKey: ["tenant", "unit"],
+    queryFn: getMyUnit,
+    refetchOnMount: "always",
+  });
+  const query = useQuery({
+    queryKey: ["tenant", "maintenance"],
+    queryFn: getMyMaintenanceRequests,
+    refetchOnMount: "always",
+  });
 
   const remove = useApiMutation((id) => deleteMaintenanceRequest(id), {
     invalidate: [["tenant"]],
@@ -115,13 +123,13 @@ export default function TenantMaintenance() {
         title="Maintenance Requests"
         description="Report unit issues and track repair progress in real time."
         actions={
-          <button type="button" disabled={!hasUnit} onClick={() => setFormOpen(true)} className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#141413] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2A2927] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:bg-[#D4AF37] dark:text-[#0B0D11]">
+          <button type="button" disabled={!hasUnit || unit.isFetching} onClick={() => setFormOpen(true)} className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#141413] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2A2927] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:bg-[#D4AF37] dark:text-[#0B0D11]">
             <Plus className="h-4 w-4" /> New request
           </button>
         }
       />
 
-      {!unit.isLoading && !hasUnit && (
+      {!unit.isFetching && !hasUnit && (
         <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-900">
           You can submit requests once an administrator assigns you a unit.
         </div>
@@ -131,7 +139,7 @@ export default function TenantMaintenance() {
         <FilterTabs value={status} onChange={(value) => { setStatus(value); setPage(1); }} options={TABS} />
       </div>
 
-      {query.isLoading ? (
+      {query.isFetching ? (
         <div className="grid gap-5 md:grid-cols-2">{[0, 1, 2, 3].map((i) => <CardSkeleton key={i} lines={4} />)}</div>
       ) : query.isError ? (
         <Card padded={false}><ErrorState error={query.error} onRetry={query.refetch} /></Card>

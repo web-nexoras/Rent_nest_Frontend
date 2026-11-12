@@ -1,39 +1,38 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
+import { getDefaultUnitImage } from "@/features/units/unitImages.js";
 
 const WINGS = [
   {
     title: "Floors A – D · Podium Suites",
     code: "A-101 to D-404 · 1,350–1,450 Sq.Ft",
-    img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=900&q=80",
+    img: getDefaultUnitImage("A-101"),
     tag: "Executive 3BHK",
   },
   {
     title: "Floors E – H · Skyline Residences",
     code: "E-501 to H-804 · 1,650–1,750 Sq.Ft",
-    img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80",
+    img: getDefaultUnitImage("E-502"),
     tag: "Panoramic 3BHK",
   },
   {
     title: "Floors I – L · Royal Penthouses",
     code: "I-901 to L-1204 · 1,900–2,000 Sq.Ft",
-    img: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80",
+    img: getDefaultUnitImage("I-903"),
     tag: "4BHK Sky Villa",
   },
 ];
 
 // Architectural Property Showcase Cards
 export function ShowcaseWings() {
-  const navigate = useNavigate();
-
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
       {WINGS.map((wing) => (
-        <div
+        <Link
           key={wing.title}
-          onClick={() => navigate("/admin/units")}
-          className="surface-card-hover cursor-pointer overflow-hidden p-3"
+          to="/admin/units"
+          className="surface-card-hover block overflow-hidden p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C59B27]"
         >
           <div className="relative h-44 w-full overflow-hidden rounded-xl">
             <img
@@ -45,16 +44,16 @@ export function ShowcaseWings() {
               {wing.tag}
             </span>
           </div>
-          <div className="px-1 pt-3 pb-1 flex items-center justify-between">
-            <div>
+          <div className="flex items-center justify-between px-1 pb-1 pt-3">
+            <div className="min-w-0">
               <h3 className="font-display text-base font-bold text-[#141413] dark:text-[#F5F0E6]">
                 {wing.title}
               </h3>
               <p className="text-xs text-[#7A7267] dark:text-[#9A9488]">{wing.code}</p>
             </div>
-            <ArrowUpRight className="h-4 w-4 text-[#C59B27]" />
+            <ArrowUpRight className="ml-2 h-4 w-4 shrink-0 text-[#C59B27]" />
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   );

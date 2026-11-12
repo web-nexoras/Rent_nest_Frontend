@@ -11,10 +11,14 @@ import { getDefaultUnitImage } from "@/features/units/unitImages.js";
 import { formatFloor, formatMoney } from "@/utils/helpers.js";
 
 export default function TenantUnit() {
-  const query = useQuery({ queryKey: ["tenant", "unit"], queryFn: getMyUnit });
+  const query = useQuery({
+    queryKey: ["tenant", "unit"],
+    queryFn: getMyUnit,
+    refetchOnMount: "always",
+  });
   const [active, setActive] = useState(0);
 
-  if (query.isLoading) {
+  if (query.isFetching) {
     return (
       <>
         <PageHeader eyebrow="My Tenancy" title="My Unit" />

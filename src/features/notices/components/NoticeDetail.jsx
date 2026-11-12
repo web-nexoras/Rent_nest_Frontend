@@ -25,6 +25,7 @@ export default function NoticeDetail() {
   const query = useQuery({
     queryKey: ["notice", id],
     queryFn: () => getNotice(id),
+    refetchOnMount: "always",
   });
 
   const addComment = useApiMutation((value) => addNoticeComment(id, value), {
@@ -50,7 +51,7 @@ export default function NoticeDetail() {
         <ArrowLeft className="h-4 w-4" /> Back to notices
       </Link>
 
-      {query.isLoading ? (
+      {query.isFetching ? (
         <Card>
           <Skeleton className="h-7 w-2/3" />
           <Skeleton className="mt-4 h-4 w-full" />

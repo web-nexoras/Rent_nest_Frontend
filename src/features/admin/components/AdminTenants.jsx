@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ShieldCheck, UserPlus } from "lucide-react";
 import {
@@ -83,6 +83,7 @@ export default function AdminTenants() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [saving, setSaving] = useState(false);
   const [actionId, setActionId] = useState(null);
+  const loadRequestRef = useRef(0);
 
   const [form, setForm] = useState(emptyForm);
 
@@ -95,26 +96,30 @@ export default function AdminTenants() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (pageOverride = page) => {
+    const requestId = ++loadRequestRef.current;
     try {
       setLoading(true);
       const [tenantRes, unitRes] = await Promise.all([
         getTenants({
           search: debouncedSearch || undefined,
           status: status || undefined,
-          page,
+          page: pageOverride,
           limit: PAGE_SIZE,
         }),
         listUnits({ status: "vacant", limit: PAGE_SIZE })
           .catch(() => ({ units: [] })),
       ]);
+      if (requestId !== loadRequestRef.current) return;
       setTenants(tenantRes?.tenants || []);
       setPagination(tenantRes?.pagination || null);
       setVacantUnits(unitRes?.units || []);
     } catch (err) {
-      toast.error(getErrorMessage(err, "Failed to load residents"));
+      if (requestId === loadRequestRef.current) {
+        toast.error(getErrorMessage(err, "Failed to load residents"));
+      }
     } finally {
-      setLoading(false);
+      if (requestId === loadRequestRef.current) setLoading(false);
     }
   }, [debouncedSearch, status, page, toast]);
 
@@ -155,7 +160,7 @@ export default function AdminTenants() {
       );
       setCreateOpen(false);
       setPage(1);
-      loadData();
+      await loadData(1);
     } catch (err) {
       toast.error(getErrorMessage(err, "Could not onboard resident"));
     } finally {
@@ -180,7 +185,7 @@ export default function AdminTenants() {
       });
       toast.success("Resident dossier updated.");
       setEditTenant(null);
-      loadData();
+      await loadData();
     } catch (err) {
       toast.error(getErrorMessage(err, "Failed to update resident"));
     } finally {
@@ -200,7 +205,7 @@ export default function AdminTenants() {
       toast.success(res?.message || "Resident approved.", "Approval Complete");
       setApprovalTarget(null);
       setApprovalUnitId("");
-      loadData();
+      await loadData();
     } catch (err) {
       toast.error(getErrorMessage(err, "Could not approve resident"));
     } finally {
@@ -216,7 +221,7 @@ export default function AdminTenants() {
         "rejected"
       );
       toast.success(res?.message || "Resident rejected.", "Registration Declined");
-      loadData();
+      await loadData();
     } catch (err) {
       toast.error(getErrorMessage(err, "Could not reject resident"));
     } finally {
@@ -229,7 +234,7 @@ export default function AdminTenants() {
       setActionId(tenant._id);
       const res = await toggleTenantActive(tenant._id);
       toast.success(res?.message || "Resident status updated.");
-      loadData();
+      await loadData();
     } catch (err) {
       toast.error(getErrorMessage(err, "Could not update resident status"));
     } finally {
@@ -245,7 +250,7 @@ export default function AdminTenants() {
       toast.success("Resident account removed.");
       setDeleteTarget(null);
       if (tenants.length === 1 && page > 1) setPage((p) => p - 1);
-      else loadData();
+      else await loadData();
     } catch (err) {
       toast.error(getErrorMessage(err, "Could not remove resident"));
     } finally {

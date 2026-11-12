@@ -31,6 +31,7 @@ export default function Notices() {
     queryKey: ["notices", { page, search: debounced }],
     queryFn: () => listNotices({ page, limit: LIMIT, search: debounced || undefined }),
     placeholderData: keepPreviousData,
+    refetchOnMount: "always",
   });
 
   const remove = useApiMutation((id) => deleteNotice(id), {
@@ -62,7 +63,7 @@ export default function Notices() {
         }
       />
 
-      {query.isLoading ? (
+      {query.isFetching ? (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
             <CardSkeleton key={index} lines={4} />

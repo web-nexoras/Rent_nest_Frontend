@@ -272,6 +272,7 @@ export default function TenantDashboard() {
           }
           icon={Home}
           tone="indigo"
+          to="/tenant/unit"
         />
         <StatCard
           label="Fixed Monthly Rent"
@@ -279,6 +280,7 @@ export default function TenantDashboard() {
           subtext="Locked rate · Due by 10th"
           icon={CreditCard}
           tone="amber"
+          to="/tenant/payments"
         />
         <StatCard
           label="Verified Rent (Recent)"
@@ -286,6 +288,7 @@ export default function TenantDashboard() {
           subtext={`${paidPaymentsCount} of ${recentPayments.length} recent receipts`}
           icon={CheckCircle2}
           tone="emerald"
+          to="/tenant/payments"
         />
         <StatCard
           label="Open Maintenance"
@@ -293,6 +296,7 @@ export default function TenantDashboard() {
           subtext="Natural wear repairs are free"
           icon={Wrench}
           tone="violet"
+          to="/tenant/maintenance"
         />
       </div>
 

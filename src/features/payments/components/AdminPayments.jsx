@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Check, CreditCard, X } from "lucide-react";
 import { PageHeader, Avatar } from "@/components/common/Layout.jsx";
@@ -22,17 +23,23 @@ const TABS = [
 ];
 
 export default function AdminPayments() {
+  const [searchParams] = useSearchParams();
   const [page, setPage] = useState(1);
-  const [status, setStatus] = useState("");
-  const [month, setMonth] = useState("");
+  const [status, setStatus] = useState(searchParams.get("status") || "");
+  const [month, setMonth] = useState(searchParams.get("month") || "");
   const [confirm, setConfirm] = useState(null);
 
   useEffect(() => setPage(1), [status, month]);
+  useEffect(() => {
+    setStatus(searchParams.get("status") || "");
+    setMonth(searchParams.get("month") || "");
+  }, [searchParams]);
 
   const query = useQuery({
     queryKey: ["payments", { page, status, month }],
     queryFn: () => listPayments({ page, limit: LIMIT, status: status || undefined, month: month || undefined }),
     placeholderData: keepPreviousData,
+    refetchOnMount: "always",
   });
 
   const close = () => setConfirm(null);
@@ -138,7 +145,7 @@ export default function AdminPayments() {
       <DataTable
         columns={columns}
         rows={query.data?.payments}
-        loading={query.isLoading}
+        loading={query.isFetching}
         error={query.isError ? query.error : null}
         onRetry={query.refetch}
         empty={<EmptyState icon={CreditCard} title="No payments found" description="Try changing the status or month filter." />}

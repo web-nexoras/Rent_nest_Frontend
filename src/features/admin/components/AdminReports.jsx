@@ -35,11 +35,13 @@ export default function AdminReports() {
     queryKey: ["payments", "report", month],
     queryFn: () => getMonthlyPaymentReport({ month }),
     enabled: Boolean(month),
+    refetchOnMount: "always",
   });
   const overdue = useQuery({
     queryKey: ["payments", "overdue", month],
     queryFn: () => getOverduePayments({ month }),
     enabled: Boolean(month),
+    refetchOnMount: "always",
   });
 
   const remind = useApiMutation(
@@ -53,7 +55,7 @@ export default function AdminReports() {
     }
   );
 
-  const totals = report.data?.totals;
+  const totals = report.isFetching ? undefined : report.data?.totals;
 
   const reportColumns = [
     {
@@ -170,6 +172,7 @@ export default function AdminReports() {
           icon={Banknote}
           tone="emerald"
           badge={formatMonth(month)}
+          to={`/admin/payments?status=verified&month=${month}`}
         />
         <StatCard
           label="Total Submitted"
@@ -177,18 +180,26 @@ export default function AdminReports() {
           icon={Wallet}
           tone="brand"
           hint={totals ? `${totals.paymentCount} payment${totals.paymentCount === 1 ? "" : "s"} logged` : undefined}
+          to={`/admin/payments?month=${month}`}
         />
         <StatCard
           label="Outstanding Balance"
           value={totals ? formatMoney(totals.outstandingAmount) : "—"}
           icon={AlertTriangle}
           tone="rose"
+          to="/admin/reports#overdue-accounts"
+          onClick={() =>
+            document
+              .getElementById("overdue-accounts")
+              ?.scrollIntoView({ behavior: "smooth", block: "start" })
+          }
         />
         <StatCard
           label="Active Leases"
           value={totals?.activeUnits ?? "—"}
           icon={Home}
           tone="accent"
+          to="/admin/units?status=occupied"
         />
       </div>
 
@@ -203,14 +214,14 @@ export default function AdminReports() {
           columns={reportColumns}
           rows={report.data?.tenants}
           rowKey="tenant"
-          loading={report.isLoading}
+          loading={report.isFetching}
           error={report.isError ? report.error : null}
           onRetry={report.refetch}
           empty={<EmptyState icon={CircleDollarSign} title="No active tenancies" description="Assign approved tenants to units to see rent status here." />}
         />
       </div>
 
-      <div className="mt-8 space-y-3">
+      <div id="overdue-accounts" className="mt-8 space-y-3">
         <div>
           <h2 className="font-display text-lg font-bold text-navy-900">
             Overdue Accounts · {formatMonth(month)}
@@ -220,7 +231,7 @@ export default function AdminReports() {
         <DataTable
           columns={overdueColumns}
           rows={overdue.data?.overdueTenants}
-          loading={overdue.isLoading}
+          loading={overdue.isFetching}
           error={overdue.isError ? overdue.error : null}
           onRetry={overdue.refetch}
           empty={<EmptyState icon={CircleDollarSign} title="Zero overdue accounts" description="Every active tenant has submitted rent for this month." />}

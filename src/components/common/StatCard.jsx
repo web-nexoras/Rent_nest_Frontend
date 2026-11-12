@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { cn } from "@/utils/helpers.js";
 
@@ -31,16 +32,18 @@ export function StatCard({
   trendDirection = "up",
   icon: Icon,
   tone = "indigo",
+  to,
+  onClick,
   className,
 }) {
   const note = subtext || hint || badge;
-  return (
-    <div
-      className={cn(
-        "surface-card-hover p-5 flex flex-col justify-between gap-3",
-        className
-      )}
-    >
+  const cardClassName = cn(
+    "surface-card-hover p-5 flex flex-col justify-between gap-3",
+    to && "block cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C59B27]",
+    className
+  );
+  const content = (
+    <>
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7A7267] dark:text-[#9A9488]">
@@ -86,7 +89,19 @@ export function StatCard({
           )}
         </div>
       )}
-    </div>
+    </>
+  );
+
+  if (to) {
+    return (
+      <Link to={to} className={cardClassName} onClick={onClick}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <div className={cardClassName}>{content}</div>
   );
 }
 

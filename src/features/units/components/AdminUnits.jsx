@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -32,13 +33,16 @@ import { getErrorMessage } from "@/utils/helpers.js";
 // Admin Units & 48-Suite Inventory Management
 export default function AdminUnits() {
   const toast = useToast();
+  const [searchParams] = useSearchParams();
+  const initialSearch = searchParams.get("search") || "";
+  const initialStatus = searchParams.get("status") || "";
   const [units, setUnits] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
 
-  const [statusFilter, setStatusFilter] = useState("");
-  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
+  const [search, setSearch] = useState(initialSearch);
   const [page, setPage] = useState(1);
 
   const [unitModalOpen, setUnitModalOpen] = useState(false);
