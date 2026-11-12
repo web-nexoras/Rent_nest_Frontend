@@ -84,6 +84,8 @@ export default function AdminTenants() {
   const [saving, setSaving] = useState(false);
   const [actionId, setActionId] = useState(null);
   const loadRequestRef = useRef(0);
+  const freshTenantListRef = useRef(false);
+  const preserveTenantListRef = useRef(false);
 
   const [form, setForm] = useState(emptyForm);
 
@@ -98,14 +100,19 @@ export default function AdminTenants() {
 
   const loadData = useCallback(async (pageOverride = page) => {
     const requestId = ++loadRequestRef.current;
+    const forceFresh = freshTenantListRef.current;
+    const preserveCurrentList = preserveTenantListRef.current;
+    freshTenantListRef.current = false;
+    preserveTenantListRef.current = false;
     try {
-      setLoading(true);
+      if (!preserveCurrentList) setLoading(true);
       const [tenantRes, unitRes] = await Promise.all([
         getTenants({
           search: debouncedSearch || undefined,
           status: status || undefined,
           page: pageOverride,
           limit: PAGE_SIZE,
+          ...(forceFresh ? { _fresh: Date.now() } : {}),
         }),
         listUnits({ status: "vacant", limit: PAGE_SIZE })
           .catch(() => ({ units: [] })),
@@ -246,11 +253,25 @@ export default function AdminTenants() {
     if (!deleteTarget) return;
     try {
       setSaving(true);
-      await deleteTenant(deleteTarget._id);
+      const deletedId = deleteTarget._id;
+      await deleteTenant(deletedId);
+      const remainingTenants = tenants.filter((tenant) => tenant._id !== deletedId);
+      setTenants(remainingTenants);
+      setPagination((current) => {
+        if (!current) return current;
+        const total = Math.max(0, current.total - 1);
+        const totalPages = Math.max(1, Math.ceil(total / current.limit));
+        return { ...current, total, totalPages, pages: totalPages };
+      });
       toast.success("Resident account removed.");
       setDeleteTarget(null);
-      if (tenants.length === 1 && page > 1) setPage((p) => p - 1);
-      else await loadData();
+      freshTenantListRef.current = true;
+      preserveTenantListRef.current = true;
+      if (remainingTenants.length === 0 && page > 1) {
+        setPage((current) => current - 1);
+      } else {
+        await loadData(page);
+      }
     } catch (err) {
       toast.error(getErrorMessage(err, "Could not remove resident"));
     } finally {

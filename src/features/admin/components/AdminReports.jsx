@@ -20,6 +20,7 @@ import {
   remindTenant,
 } from "@/features/payments/api/paymentApi.js";
 import { useApiMutation } from "@/hooks/useApiMutation.js";
+import { listUnits } from "@/features/units/api/unitApi.js";
 import { currentMonth, formatMoney, formatMonth } from "@/utils/helpers.js";
 
 const OVERDUE_STAGES = {
@@ -31,16 +32,27 @@ const OVERDUE_STAGES = {
 export default function AdminReports() {
   const [month, setMonth] = useState(currentMonth());
 
+  const occupiedUnits = useQuery({
+    queryKey: ["units", "report-collection-start"],
+    queryFn: () => listUnits({ status: "occupied", limit: 50 }),
+    refetchOnMount: "always",
+  });
+  const collectionStartMonth = (occupiedUnits.data?.units || [])
+    .map((unit) => unit.assignedMonth)
+    .filter((value) => /^\d{4}-(0[1-9]|1[0-2])$/.test(value || ""))
+    .sort()[0] || null;
+  const beforeCollectionStart = Boolean(collectionStartMonth && month < collectionStartMonth);
+
   const report = useQuery({
     queryKey: ["payments", "report", month],
     queryFn: () => getMonthlyPaymentReport({ month }),
-    enabled: Boolean(month),
+    enabled: Boolean(month) && !occupiedUnits.isFetching && !beforeCollectionStart,
     refetchOnMount: "always",
   });
   const overdue = useQuery({
     queryKey: ["payments", "overdue", month],
     queryFn: () => getOverduePayments({ month }),
-    enabled: Boolean(month),
+    enabled: Boolean(month) && !occupiedUnits.isFetching && !beforeCollectionStart,
     refetchOnMount: "always",
   });
 
@@ -55,7 +67,16 @@ export default function AdminReports() {
     }
   );
 
-  const totals = report.isFetching ? undefined : report.data?.totals;
+  const totals = beforeCollectionStart
+    ? { collectedAmount: 0, submittedAmount: 0, outstandingAmount: 0, activeUnits: 0, paymentCount: 0 }
+    : occupiedUnits.isFetching || report.isFetching
+      ? undefined
+      : report.data?.totals;
+  const statementRows = beforeCollectionStart ? [] : report.data?.tenants;
+  const overdueRows = beforeCollectionStart ? [] : overdue.data?.overdueTenants;
+  const beforeStartMessage = collectionStartMonth
+    ? `Rent collection started in ${formatMonth(collectionStartMonth)}. This earlier month has no statement.`
+    : "There was no rent collection for this month.";
 
   const reportColumns = [
     {
@@ -212,12 +233,14 @@ export default function AdminReports() {
         </div>
         <DataTable
           columns={reportColumns}
-          rows={report.data?.tenants}
           rowKey="tenant"
-          loading={report.isFetching}
-          error={report.isError ? report.error : null}
+          rows={statementRows}
+          loading={occupiedUnits.isFetching || report.isFetching}
+          error={!beforeCollectionStart && report.isError ? report.error : null}
           onRetry={report.refetch}
-          empty={<EmptyState icon={CircleDollarSign} title="No active tenancies" description="Assign approved tenants to units to see rent status here." />}
+          empty={beforeCollectionStart
+            ? <EmptyState icon={CircleDollarSign} title="No collection for this month" description={beforeStartMessage} />
+            : <EmptyState icon={CircleDollarSign} title="No active tenancies" description="Assign approved tenants to units to see rent status here." />}
         />
       </div>
 
@@ -230,11 +253,13 @@ export default function AdminReports() {
         </div>
         <DataTable
           columns={overdueColumns}
-          rows={overdue.data?.overdueTenants}
-          loading={overdue.isFetching}
-          error={overdue.isError ? overdue.error : null}
+          rows={overdueRows}
+          loading={occupiedUnits.isFetching || overdue.isFetching}
+          error={!beforeCollectionStart && overdue.isError ? overdue.error : null}
           onRetry={overdue.refetch}
-          empty={<EmptyState icon={CircleDollarSign} title="Zero overdue accounts" description="Every active tenant has submitted rent for this month." />}
+          empty={beforeCollectionStart
+            ? <EmptyState icon={CircleDollarSign} title="Zero overdue accounts" description={beforeStartMessage} />
+            : <EmptyState icon={CircleDollarSign} title="Zero overdue accounts" description="Every active tenant has submitted rent for this month." />}
         />
       </div>
     </>
