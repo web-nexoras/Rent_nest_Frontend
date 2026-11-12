@@ -21,6 +21,7 @@ export default function Signup() {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const passwordIsValid = formData.password.length >= 6;
   const validate = () => {
     const errs = {};
     const name = formData.name.trim();
@@ -65,6 +66,8 @@ export default function Signup() {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Keep the request boundary guarded even if submit is triggered outside the button.
+    if (isSubmitting || !passwordIsValid) return;
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -73,7 +76,12 @@ export default function Signup() {
 
     setIsSubmitting(true);
     try {
-      await signup(formData);
+      await signup({
+        ...formData,
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone.trim().replace(/[\s-]/g, ""),
+      });
       toast.success(
         "Verification code sent to your email.",
         "Check Email"
@@ -197,6 +205,7 @@ export default function Signup() {
               id="password"
               name="password"
               type={showPassword ? "text" : "password"}
+              minLength={6}
               value={formData.password}
               onChange={handleChange}
               placeholder="Create password"
@@ -221,7 +230,7 @@ export default function Signup() {
         <div className="pt-2">
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !passwordIsValid}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#C59B27] to-[#D4AF37] py-3 px-4 text-sm font-semibold text-[#141413] shadow-md transition-all hover:brightness-105 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (

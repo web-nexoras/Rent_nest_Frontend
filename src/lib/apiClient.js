@@ -60,8 +60,15 @@ api.interceptors.response.use(
 /** Extract the backend's `{ success:false, message }` error message. */
 export const getErrorMessage = (error, fallback = "Something went wrong") => {
   if (error?.response?.data?.message) return error.response.data.message;
+  const status = error?.response?.status;
+  if (status === 502 || status === 503 || status === 504) {
+    return "The server is temporarily unavailable. Your request was not confirmed; please try again shortly.";
+  }
   if (error?.code === "ERR_NETWORK") {
     return "Cannot reach the server. Check that the backend is running.";
+  }
+  if (error?.code === "ECONNABORTED") {
+    return "The server took too long to respond. Please check the result before submitting again.";
   }
   return error?.message || fallback;
 };

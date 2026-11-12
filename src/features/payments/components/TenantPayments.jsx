@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   Calendar,
@@ -58,6 +58,7 @@ export default function TenantPayments() {
   const [payingSsl, setPayingSsl] = useState(false);
   const [manualModalOpen, setManualModalOpen] = useState(false);
   const [submittingManual, setSubmittingManual] = useState(false);
+  const manualSubmitLock = useRef(false);
   const [manualForm, setManualForm] = useState({
     month: getCurrentMonthString(),
     method: "bkash",
@@ -126,6 +127,9 @@ export default function TenantPayments() {
   const selectedRecord = payments.find((p) => p.month === selectedMonth);
   const paymentLocked =
     selectedRecord?.status === "pending" || selectedRecord?.status === "verified";
+  const manualMonthRecord = payments.find((payment) => payment.month === manualForm.month);
+  const manualMonthLocked =
+    manualMonthRecord?.status === "pending" || manualMonthRecord?.status === "verified";
 
   const handleSslCheckout = async () => {
     if (!unit) {
@@ -149,13 +153,18 @@ export default function TenantPayments() {
 
   const handleManualSubmit = async (e) => {
     e.preventDefault();
-    if (!unit) return;
+    if (!unit || manualMonthLocked || manualSubmitLock.current) return;
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(manualForm.month) || manualForm.month < joinMonth) {
+      toast.error("Choose a valid billing month from your tenancy period.");
+      return;
+    }
     const transactionId = manualForm.transactionId.trim();
     if (manualForm.method !== "cash" && !transactionId) {
       toast.error("Transaction / reference ID is required.");
       return;
     }
     try {
+      manualSubmitLock.current = true;
       setSubmittingManual(true);
       await submitPayment({
         month: manualForm.month,
@@ -167,10 +176,11 @@ export default function TenantPayments() {
         "Submitted"
       );
       setManualModalOpen(false);
-      loadData();
+      await loadData();
     } catch (err) {
       toast.error(getErrorMessage(err, "Failed to submit payment"));
     } finally {
+      manualSubmitLock.current = false;
       setSubmittingManual(false);
     }
   };
@@ -303,6 +313,7 @@ export default function TenantPayments() {
         setForm={setManualForm}
         onSubmit={handleManualSubmit}
         isSubmitting={submittingManual}
+        paymentLocked={manualMonthLocked}
       />
 
       {/* Printable Official Payment Receipt Modal */}

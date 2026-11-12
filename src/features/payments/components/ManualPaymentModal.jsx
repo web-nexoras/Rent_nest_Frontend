@@ -24,6 +24,7 @@ export function ManualPaymentModal({
   setForm,
   onSubmit,
   isSubmitting = false,
+  paymentLocked = false,
 }) {
   if (!isOpen) return null;
 
@@ -90,7 +91,7 @@ export function ManualPaymentModal({
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" variant="primary" isLoading={isSubmitting}>
+          <Button type="submit" variant="primary" isLoading={isSubmitting} disabled={paymentLocked}>
             Submit Fixed Rent ({formatCurrency(lockedRentAmount)})
           </Button>
         </div>
