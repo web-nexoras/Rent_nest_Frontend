@@ -18,7 +18,9 @@ export function ProtectedRoute({ role }) {
 /** Signin/signup pages: bounce signed-in users to their dashboard. */
 export function PublicOnlyRoute() {
   const { user, loading } = useAuth();
-  if (loading) return <FullScreenLoader />;
+  // Let public forms render while session restoration is in flight. A slow or
+  // sleeping API should not block the signup page from appearing.
+  if (loading) return <Outlet />;
   if (user) return <Navigate to={homeFor(user)} replace />;
   return <Outlet />;
 }

@@ -2,14 +2,12 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom";
 import {
   Calendar,
-  Plus,
   Printer,
 } from "lucide-react";
 import {
   getMyPayments,
   getPaymentReceipt,
   initSslPayment,
-  submitPayment,
 } from "@/features/payments/api/paymentApi.js";
 import { getTenantDashboard } from "@/features/tenants/api/dashboardApi.js";
 import { useAuth } from "@/hooks/useAuth.jsx";
@@ -21,10 +19,7 @@ import {
   Skeleton,
 } from "@/components/common/Layout.jsx";
 import { DataTable } from "@/components/common/DataTable.jsx";
-import { Input, Select } from "@/components/common/Input.jsx";
-import { Modal } from "@/components/common/Modal.jsx";
 import { PaymentCalendar } from "@/features/payments/components/PaymentCalendar.jsx";
-import { ManualPaymentModal } from "@/features/payments/components/ManualPaymentModal.jsx";
 import { ReceiptModal } from "@/features/payments/components/ReceiptModal.jsx";
 import TenantCheckoutCard from "@/features/payments/components/TenantCheckoutCard.jsx";
 import SecureCheckoutModal from "@/features/payments/components/SecureCheckoutModal.jsx";
@@ -34,15 +29,6 @@ import {
   getCurrentMonthString,
   getErrorMessage,
 } from "@/utils/helpers.js";
-
-const MANUAL_METHODS = [
-  { value: "bkash", label: "bKash Transfer" },
-  { value: "nagad", label: "Nagad Transfer" },
-  { value: "rocket", label: "Rocket Transfer" },
-  { value: "upay", label: "Upay Transfer" },
-  { value: "bank_transfer", label: "Bank Transfer / EFT" },
-  { value: "cash", label: "Cash at Vault Desk" },
-];
 
 const SSL_MESSAGES = {
   failed: "SSLCommerz checkout was unsuccessful.",
@@ -61,24 +47,10 @@ export default function TenantPayments() {
   const [loading, setLoading] = useState(true);
 
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthString());
-  const selectedMonthRef = useRef(selectedMonth);
   const loadRequestRef = useRef(0);
   const [payingSsl, setPayingSsl] = useState(false);
   const [sslConfirmOpen, setSslConfirmOpen] = useState(false);
-  const [manualModalOpen, setManualModalOpen] = useState(false);
-  const [submittingManual, setSubmittingManual] = useState(false);
-  const manualSubmitLock = useRef(false);
-  const [manualForm, setManualForm] = useState({
-    month: getCurrentMonthString(),
-    method: "bkash",
-    transactionId: "",
-  });
-
   const [receiptPayment, setReceiptPayment] = useState(null);
-
-  useEffect(() => {
-    selectedMonthRef.current = selectedMonth;
-  }, [selectedMonth]);
 
   const loadData = useCallback(async () => {
     const requestId = ++loadRequestRef.current;
@@ -120,12 +92,7 @@ export default function TenantPayments() {
         toast.error(SSL_MESSAGES[sslStatus], "Payment Incomplete");
         clearParams("ssl", "paymentId");
       } else if (searchParams.get("pay") === "1" && nextUnit) {
-        setManualForm({
-          month: selectedMonthRef.current,
-          method: "bkash",
-          transactionId: "",
-        });
-        setManualModalOpen(true);
+        setSslConfirmOpen(true);
         clearParams("pay");
       }
     } catch (err) {
@@ -155,10 +122,6 @@ export default function TenantPayments() {
   const selectedRecord = visiblePayments.find((p) => p.month === selectedMonth);
   const paymentLocked =
     selectedRecord?.status === "pending" || selectedRecord?.status === "verified";
-  const manualMonthRecord = visiblePayments.find((payment) => payment.month === manualForm.month);
-  const manualMonthLocked =
-    manualMonthRecord?.status === "pending" || manualMonthRecord?.status === "verified";
-
   const handleSslCheckout = async () => {
     if (loading) return;
     if (!unit) {
@@ -183,40 +146,6 @@ export default function TenantPayments() {
       toast.error(getErrorMessage(err, "Could not start online checkout"));
     } finally {
       setPayingSsl(false);
-    }
-  };
-
-  const handleManualSubmit = async (e) => {
-    e.preventDefault();
-    if (!unit || manualMonthLocked || manualSubmitLock.current) return;
-    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(manualForm.month) || manualForm.month < joinMonth) {
-      toast.error("Choose a valid billing month from your tenancy period.");
-      return;
-    }
-    const transactionId = manualForm.transactionId.trim();
-    if (manualForm.method !== "cash" && !transactionId) {
-      toast.error("Transaction / reference ID is required.");
-      return;
-    }
-    try {
-      manualSubmitLock.current = true;
-      setSubmittingManual(true);
-      await submitPayment({
-        month: manualForm.month,
-        method: manualForm.method,
-        ...(transactionId ? { transactionId } : {}),
-      });
-      toast.success(
-        "Payment submitted! Amount is locked to your suite's fixed rent.",
-        "Submitted"
-      );
-      setManualModalOpen(false);
-      await loadData();
-    } catch (err) {
-      toast.error(getErrorMessage(err, "Failed to submit payment"));
-    } finally {
-      manualSubmitLock.current = false;
-      setSubmittingManual(false);
     }
   };
 
@@ -269,26 +198,6 @@ export default function TenantPayments() {
       <PageHeader
         title="Rent Payments & SSLCommerz Checkout"
         description="Your monthly rent is locked to your assigned suite's fixed rate. Settle between the 1st and 10th to avoid overdue status."
-        actions={
-          unit && (
-            <button
-              type="button"
-              className="inline-flex min-h-10 w-full min-w-0 items-center justify-center gap-2 rounded-xl border border-[#E5DEC9] bg-white px-4 py-2 text-center text-sm font-semibold leading-snug text-[#141413] hover:bg-[#F6F2E9] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:border-[#252C3D] dark:bg-[#131722] dark:text-[#F5F0E6]"
-              disabled={loading || paymentLocked}
-              onClick={() => {
-                setManualForm({
-                  month: selectedMonth,
-                  method: "bkash",
-                  transactionId: "",
-                });
-                setManualModalOpen(true);
-              }}
-            >
-              <Plus className="h-4 w-4 shrink-0" />
-              Submit Manual / Mobile Transfer
-            </button>
-          )
-        }
       />
       {loading ? (
         <Card className="space-y-3">
@@ -333,7 +242,6 @@ export default function TenantPayments() {
         />
       </Card>
 
-      {/* Manual Transfer Modal (With Read-Only Fixed Rent Lock) */}
       <SecureCheckoutModal
         isOpen={sslConfirmOpen}
         onClose={() => setSslConfirmOpen(false)}
@@ -342,19 +250,6 @@ export default function TenantPayments() {
         unit={unit}
         amount={lockedRentAmount}
         month={selectedMonth}
-      />
-
-      <ManualPaymentModal
-        isOpen={manualModalOpen}
-        onClose={() => setManualModalOpen(false)}
-        unit={unit}
-        lockedRentAmount={lockedRentAmount}
-        joinMonth={joinMonth}
-        form={manualForm}
-        setForm={setManualForm}
-        onSubmit={handleManualSubmit}
-        isSubmitting={submittingManual}
-        paymentLocked={manualMonthLocked}
       />
 
       {/* Printable Official Payment Receipt Modal */}

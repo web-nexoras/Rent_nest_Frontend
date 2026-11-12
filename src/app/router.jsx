@@ -43,11 +43,15 @@ export default function AppRoutes() {
           <Route path="/signin" element={<SigninPage />} />
           <Route path="/login" element={<Navigate to="/signin" replace />} />
           <Route path="/signup" element={<SignupPage />} />
-          <Route path="/verify-otp" element={<VerifyOtpPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Route>
+      </Route>
+
+      {/* Signup may set auth cookies before email verification; OTP must remain reachable. */}
+      <Route element={<AuthLayout />}>
+        <Route path="/verify-otp" element={<VerifyOtpPage />} />
       </Route>
 
       {/* Admin Protected Workspace */}

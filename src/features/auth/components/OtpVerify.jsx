@@ -40,7 +40,13 @@ export default function OtpVerify() {
     setError("");
     try {
       const data = await verifyOtp({ email, otp: cleanOtp });
-      toast.success(data.message || "Email verified successfully!", "Success");
+      const approvalPending = data.user?.approvalStatus === "pending";
+      toast.success(
+        approvalPending
+          ? "Email verified. Your account is now waiting for administrator approval. Sign in to view your status."
+          : data.message || "Email verified successfully!",
+        approvalPending ? "Awaiting Admin Approval" : "Success",
+      );
       navigate("/signin", { replace: true, state: { email } });
     } catch (err) {
       setError(getErrorMessage(err, "Verification failed"));
@@ -69,7 +75,7 @@ export default function OtpVerify() {
         </div>
         <AuthHeader
           title="Verify your email"
-          subtitle={<>We sent a 4-digit code to <span className="break-all font-semibold text-[#141413] dark:text-[#F5F0E6]">{email}</span>.</>}
+          subtitle={<>A 4-digit code is on its way to <span className="break-all font-semibold text-[#141413] dark:text-[#F5F0E6]">{email}</span>.</>}
         />
       </section>
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>

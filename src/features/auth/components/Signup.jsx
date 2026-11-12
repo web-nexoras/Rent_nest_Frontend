@@ -76,17 +76,18 @@ export default function Signup() {
 
     setIsSubmitting(true);
     try {
-      await signup({
+      const signupPayload = {
         ...formData,
         name: formData.name.trim(),
         email: formData.email.trim().toLowerCase(),
         phone: formData.phone.trim().replace(/[\s-]/g, ""),
-      });
+      };
+      const response = await signup(signupPayload);
       toast.success(
-        "Verification code sent to your email.",
+        response?.message || "Your verification code is on its way to your email.",
         "Check Email"
       );
-      navigate("/verify-otp", { state: { email: formData.email } });
+      navigate("/verify-otp", { state: { email: signupPayload.email } });
     } catch (err) {
       toast.error(
         getErrorMessage(err, "Registration failed. Please check your inputs."),

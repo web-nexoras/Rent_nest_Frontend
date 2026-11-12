@@ -79,7 +79,7 @@ export default function TenantDashboard() {
       <div className="space-y-6">
         <Skeleton className="h-12 w-2/3" />
         <Skeleton className="h-32 w-full" />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[...Array(4)].map((_, i) => (
             <Skeleton key={i} className="h-32" />
           ))}
@@ -169,8 +169,8 @@ export default function TenantDashboard() {
               : "border-[#D4AF37]/60 bg-gradient-to-r from-[#FBF7EA] via-white to-[#F6F2E9] dark:from-[#1C2230] dark:via-[#131722] dark:to-[#181D2B]"
           }`}
         >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3.5">
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex min-w-0 items-start gap-3.5">
               <div
                 className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
                   rentStatus === "overdue"
@@ -182,7 +182,7 @@ export default function TenantDashboard() {
               >
                 <AlertTriangle className="h-6 w-6" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-display text-lg font-bold text-[#141413] dark:text-[#F5F0E6]">
                     {rentStatus === "overdue"
@@ -216,7 +216,7 @@ export default function TenantDashboard() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <div className="flex w-full min-w-0 flex-col gap-2.5 sm:flex-row sm:flex-wrap xl:w-auto xl:shrink-0">
               {needsPayment ? (
                 <>
                   <button
@@ -227,13 +227,6 @@ export default function TenantDashboard() {
                   >
                     <CreditCard className="h-4 w-4 shrink-0" />
                     Pay Online Now
-                  </button>
-                  <button
-                    type="button"
-                    className={`${actionButton} border border-[#E5DEC9] bg-white text-[#141413] hover:bg-[#F6F2E9] dark:border-[#252C3D] dark:bg-[#131722] dark:text-[#F5F0E6]`}
-                    onClick={() => navigate("/tenant/payments")}
-                  >
-                    Manual / bKash Record
                   </button>
                 </>
               ) : (
@@ -261,7 +254,7 @@ export default function TenantDashboard() {
       />
 
       {/* Top 4 Resident KPI Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Assigned Suite"
           value={unit ? `Suite ${unit.unitNumber}` : "Unassigned"}
@@ -301,8 +294,8 @@ export default function TenantDashboard() {
       </div>
 
       {/* Bottom Split: Recent Payments & Building Notices + Quick Agreement Card */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2" padding="p-6">
+      <div className="grid min-w-0 grid-cols-1 gap-5 sm:gap-6 xl:grid-cols-3">
+        <Card className="min-w-0 xl:col-span-2" padding="p-4 sm:p-6">
           <CardHeader
             title="Recent Rent Settlements"
             subtitle="Your latest verified rent payments and downloadable receipts"
@@ -350,13 +343,13 @@ export default function TenantDashboard() {
         </Card>
 
         {/* Signature Dark Obsidian Lease Covenant Summary Card */}
-        <div className="obsidian-card p-6 flex flex-col justify-between">
+        <div className="obsidian-card flex min-w-0 flex-col justify-between p-5 sm:p-6">
           <div>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#C59B27]/20 px-3 py-1 text-[11px] font-semibold text-[#D4AF37]">
               <ShieldCheck className="h-3.5 w-3.5" />
               Official Lease Covenant
             </span>
-            <h3 className="mt-4 font-display text-2xl font-bold text-white">
+            <h3 className="mt-4 font-display text-xl font-bold text-white sm:text-2xl">
               Tenancy Agreement &amp; Damage Policy
             </h3>
             <p className="mt-2 text-xs leading-relaxed text-[#B8B2A6]">

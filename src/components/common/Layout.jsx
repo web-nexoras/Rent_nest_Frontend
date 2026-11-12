@@ -6,7 +6,7 @@ export function PageHeader({ eyebrow, title, description, actions, badge, classN
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-1",
+        "flex min-w-0 flex-col gap-4 md:flex-row md:items-center md:justify-between pb-1",
         className
       )}
     >
@@ -28,7 +28,7 @@ export function PageHeader({ eyebrow, title, description, actions, badge, classN
           </p>
         )}
       </div>
-      {actions && <div className="flex max-w-full flex-wrap items-center gap-2.5">{actions}</div>}
+      {actions && <div className="flex w-full min-w-0 flex-col items-stretch gap-2.5 sm:flex-row sm:flex-wrap sm:items-center md:w-auto md:justify-end">{actions}</div>}
     </div>
   );
 }
