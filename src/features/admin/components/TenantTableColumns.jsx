@@ -4,6 +4,8 @@ import { Badge } from "@/components/common/Badge.jsx";
 import { Button } from "@/components/common/Button.jsx";
 import { formatCurrency, formatDate, formatFloor, getInitials } from "@/utils/helpers.js";
 
+const secondaryActionClass = "pointer-events-none opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 [@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100 2xl:pointer-events-auto 2xl:opacity-100";
+
 export function createTenantColumns({
   actionId,
   setApprovalTarget,
@@ -48,11 +50,11 @@ export function createTenantColumns({
         <div className="space-y-1 text-xs">
           <div className="flex items-center gap-1.5 text-[#141413] dark:text-[#F5F0E6]">
             <Mail className="h-3.5 w-3.5 shrink-0 text-[#C59B27]" />
-            <span className="truncate">{row.email}</span>
+            <span className="min-w-0 truncate">{row.email}</span>
           </div>
           <div className="flex items-center gap-1.5 text-[#7A7267] dark:text-[#9A9488]">
             <Phone className="h-3.5 w-3.5 shrink-0 text-[#C59B27]" />
-            <span>{row.phone || "No mobile"}</span>
+            <span className="min-w-0 break-all">{row.phone || "No mobile"}</span>
           </div>
         </div>
       ),
@@ -136,6 +138,7 @@ export function createTenantColumns({
             size="xs"
             leftIcon={Edit3}
             onClick={() => openEditModal(row)}
+            className={secondaryActionClass}
           >
             Edit
           </Button>
@@ -145,6 +148,7 @@ export function createTenantColumns({
             onClick={() => handleToggleActive(row)}
             isLoading={actionId === row._id}
             title={row.isActive ? "Suspend resident" : "Activate resident"}
+            className={secondaryActionClass}
           >
             <Power className="h-3.5 w-3.5" />
           </Button>
@@ -153,7 +157,7 @@ export function createTenantColumns({
             size="xs"
             onClick={() => setDeleteTarget(row)}
             title="Delete resident"
-            className="text-rose-600 hover:text-rose-700"
+            className={`${secondaryActionClass} text-rose-600 hover:text-rose-700`}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>

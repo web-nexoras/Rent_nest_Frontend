@@ -25,6 +25,7 @@ export function DataTable({
   footer,
   rowKey = "_id",
   onRowClick,
+  responsiveCards = false,
 }) {
   const list = data ?? rows ?? [];
   const busy = isLoading || loading;
@@ -62,6 +63,56 @@ export function DataTable({
 
   return (
     <div className="surface-card overflow-hidden">
+      {responsiveCards && (
+        <div className="space-y-3 p-3 2xl:hidden">
+          {list.map((row, rowIndex) => {
+            const keyVal =
+              typeof row[rowKey] === "object"
+                ? row[rowKey]?._id || rowIndex
+                : row[rowKey] || row.id || rowIndex;
+            const [primary, ...details] = columns;
+            return (
+              <article
+                key={keyVal}
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                className={cn(
+                  "min-w-0 rounded-2xl border border-[#E8DFCE] bg-white p-3.5 shadow-sm dark:border-[#252C3D] dark:bg-[#131722] sm:p-4",
+                  onRowClick && "cursor-pointer"
+                )}
+              >
+                {primary && (
+                  <div className="min-w-0 border-b border-[#EFE9DC] pb-3 dark:border-[#252C3D]">
+                    {primary.render ? primary.render(row, rowIndex) : row[primary.key]}
+                  </div>
+                )}
+                {details.length > 0 && (
+                  <dl className="mt-3 grid min-w-0 grid-cols-2 gap-2 sm:gap-2.5">
+                    {details.map((column) => (
+                      <div
+                        key={column.key || column.header}
+                        className={cn(
+                          "min-w-0 rounded-xl bg-[#FAF7F2] px-2.5 py-2 dark:bg-[#0E1117] sm:px-3",
+                          ["actions", "action"].includes(column.key) && "col-span-2"
+                        )}
+                      >
+                        {column.header && (
+                          <dt className="mb-1 text-[9px] font-bold uppercase tracking-[0.12em] text-[#8C8479] dark:text-[#9A9488]">
+                            {column.header}
+                          </dt>
+                        )}
+                        <dd className="min-w-0 break-words text-xs text-[#141413] dark:text-[#F5F0E6]">
+                          {column.render ? column.render(row, rowIndex) : row[column.key]}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      )}
+      <div className={responsiveCards ? "hidden 2xl:block" : ""}>
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -116,6 +167,7 @@ export function DataTable({
             })}
           </tbody>
         </table>
+      </div>
       </div>
       {footer && <div>{footer}</div>}
     </div>

@@ -22,6 +22,7 @@ import { PaymentCalendar } from "@/features/payments/components/PaymentCalendar.
 import { ManualPaymentModal } from "@/features/payments/components/ManualPaymentModal.jsx";
 import { ReceiptModal } from "@/features/payments/components/ReceiptModal.jsx";
 import TenantCheckoutCard from "@/features/payments/components/TenantCheckoutCard.jsx";
+import SecureCheckoutModal from "@/features/payments/components/SecureCheckoutModal.jsx";
 import { createTenantPaymentColumns } from "@/features/payments/components/TenantPaymentColumns.jsx";
 import {
   formatMonthLabel,
@@ -56,6 +57,7 @@ export default function TenantPayments() {
 
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthString());
   const [payingSsl, setPayingSsl] = useState(false);
+  const [sslConfirmOpen, setSslConfirmOpen] = useState(false);
   const [manualModalOpen, setManualModalOpen] = useState(false);
   const [submittingManual, setSubmittingManual] = useState(false);
   const manualSubmitLock = useRef(false);
@@ -136,11 +138,17 @@ export default function TenantPayments() {
       toast.error("You do not have an assigned suite yet.");
       return;
     }
+    if (paymentLocked || payingSsl) return;
+    setSslConfirmOpen(true);
+  };
+
+  const continueSslCheckout = async () => {
+    if (!unit || paymentLocked || payingSsl) return;
     try {
       setPayingSsl(true);
       const res = await initSslPayment({ month: selectedMonth });
       if (res?.gatewayUrl) {
-        window.location.href = res.gatewayUrl;
+        window.location.assign(res.gatewayUrl);
       } else {
         toast.error("SSLCommerz gateway link could not be generated.");
       }
@@ -303,6 +311,16 @@ export default function TenantPayments() {
       </Card>
 
       {/* Manual Transfer Modal (With Read-Only Fixed Rent Lock) */}
+      <SecureCheckoutModal
+        isOpen={sslConfirmOpen}
+        onClose={() => setSslConfirmOpen(false)}
+        onConfirm={continueSslCheckout}
+        isLoading={payingSsl}
+        unit={unit}
+        amount={lockedRentAmount}
+        month={selectedMonth}
+      />
+
       <ManualPaymentModal
         isOpen={manualModalOpen}
         onClose={() => setManualModalOpen(false)}

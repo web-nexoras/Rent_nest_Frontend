@@ -18,6 +18,9 @@ import { useTheme } from "@/hooks/useTheme.jsx";
 import { adminNavigation, tenantNavigation } from "@/lib/constants.js";
 import { getInitials } from "@/utils/helpers.js";
 import { useNoticeBadge } from "@/hooks/useNoticeBadge.js";
+import { getAdminDashboard } from "@/features/admin/api/adminApi.js";
+import { getTenantDashboard } from "@/features/tenants/api/dashboardApi.js";
+import { getUnitStatusMatrix } from "@/features/units/api/unitApi.js";
 
 // Cute animated Sun/Moon + Stars theme toggle switch
 export function CuteThemeToggle() {
@@ -83,6 +86,7 @@ export function Navbar({ onOpenSidebar }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [hasRentDue, setHasRentDue] = useState(false);
   const searchRef = useRef(null);
   const profileRef = useRef(null);
 
@@ -90,6 +94,48 @@ export function Navbar({ onOpenSidebar }) {
   const filteredRoutes = navItems.filter((item) =>
     item.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
   );
+
+  useEffect(() => {
+    let active = true;
+    const checkRentStatus = async () => {
+      if (!user?._id) {
+        if (active) setHasRentDue(false);
+        return;
+      }
+
+      try {
+        if (isAdmin) {
+          const [dashboard, matrix] = await Promise.all([
+            getAdminDashboard(),
+            getUnitStatusMatrix().catch(() => null),
+          ]);
+          const dueInMatrix = (matrix?.units || []).some((unit) =>
+            unit.occupancyStatus === "occupied" &&
+            (unit.isOverdue || ["due", "due_alert", "overdue"].includes(unit.paymentStatus))
+          );
+          if (active) {
+            setHasRentDue(Number(dashboard?.stats?.unpaidUnitsCount || 0) > 0 || dueInMatrix);
+          }
+        } else {
+          const dashboard = await getTenantDashboard();
+          const dueStatus = dashboard?.dueStatus;
+          const isDue = Boolean(dashboard?.unit) && (
+            dueStatus?.isOverdue || ["due", "overdue"].includes(dueStatus?.status)
+          );
+          if (active) setHasRentDue(isDue);
+        }
+      } catch {
+        // Keep the last known status if a temporary refresh fails.
+      }
+    };
+
+    checkRentStatus();
+    const intervalId = window.setInterval(checkRentStatus, 120_000);
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, [isAdmin, user?._id]);
 
   useEffect(() => {
     const handleOutside = (e) => {
@@ -198,11 +244,13 @@ export function Navbar({ onOpenSidebar }) {
           <button
             type="button"
             onClick={() => navigate(isAdmin ? "/admin/payments" : "/tenant/payments")}
-            title="Rent & Due Status Alerts"
+            title={hasRentDue ? "Rent due: open payment status" : "No rent due"}
             className="relative hidden sm:inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E6DEC8] dark:border-[#242B3D] bg-white dark:bg-[#131722] text-[#2C2925] dark:text-[#E5DFD3] hover:border-[#C59B27] transition-colors"
           >
             <AlertTriangle className="h-4 w-4" />
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-[#131722]" />
+            {hasRentDue && (
+              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-[#131722]" />
+            )}
           </button>
 
           {/* Notification Bell Icon (Left of User Profile) */}

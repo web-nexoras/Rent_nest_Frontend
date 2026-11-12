@@ -1,16 +1,13 @@
 import React, { useEffect, useState } from "react";
 import {
-  AlertTriangle,
-  Building2,
-  CheckCircle2,
   Download,
   FileCheck2,
   HeartHandshake,
+  ImageUp,
   Printer,
   Scale,
   ShieldAlert,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 import { getTenantDashboard } from "@/features/tenants/api/dashboardApi.js";
 import { useAuth } from "@/hooks/useAuth.jsx";
@@ -27,6 +24,9 @@ export default function TenantAgreement() {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [acknowledged, setAcknowledged] = useState(true);
+  const [signatureData, setSignatureData] = useState("");
+  const [signatureFileName, setSignatureFileName] = useState("");
+  const [signatureError, setSignatureError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -52,6 +52,31 @@ export default function TenantAgreement() {
     window.print();
   };
 
+  const handleSignatureUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+      setSignatureError("Choose a PNG, JPG, or WEBP signature image.");
+      event.target.value = "";
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setSignatureError("Signature image must be 5 MB or smaller.");
+      event.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSignatureData(String(reader.result || ""));
+      setSignatureFileName(file.name);
+      setSignatureError("");
+    };
+    reader.onerror = () => setSignatureError("Could not read that image. Please choose another file.");
+    reader.readAsDataURL(file);
+    event.target.value = "";
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -70,7 +95,7 @@ export default function TenantAgreement() {
         <PageHeader
           title="Tenancy Lease Agreement & Building Rules"
           description="Official residential lease covenant, damage liability policy, and downloadable PDF dossier."
-          badge={<Badge status="verified">Active Covenant</Badge>}
+          badge={<Badge tone="brand">Active Covenant</Badge>}
           actions={
             <>
               <button
@@ -97,10 +122,10 @@ export default function TenantAgreement() {
       {/* Printable Official Legal Document Container */}
       <div
         id="agreement-print"
-        className="surface-card mx-auto max-w-4xl overflow-hidden border-2 border-[#DFD4BE] dark:border-[#C59B27]/35 bg-white dark:bg-[#131722] p-6 sm:p-10 shadow-xl"
+        className="surface-card mx-auto max-w-4xl overflow-hidden border border-[#E5DEC9] bg-white p-5 shadow-md dark:border-[#34302A] dark:bg-[#131722] sm:p-8 lg:p-10"
       >
         {/* Top Royal Crest Letterhead */}
-        <div className="flex flex-col items-center justify-between gap-4 border-b-2 border-[#E5DEC9] dark:border-[#252C3D] pb-6 sm:flex-row">
+        <div className="flex flex-col items-center justify-between gap-4 border-b border-[#D8CCB8] pb-5 dark:border-[#34302A] sm:flex-row">
           <Logo to="/tenant/dashboard" />
           <div className="text-center sm:text-right">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F6F2E9] dark:bg-[#1C2230] px-3 py-1 text-xs font-bold text-[#9A7418] dark:text-[#D4AF37] border border-[#E5DEC9] dark:border-[#2A3246]">
@@ -117,7 +142,7 @@ export default function TenantAgreement() {
         </div>
 
         {/* Document Title Banner */}
-        <div className="my-6 rounded-2xl bg-[#FAF7F2] dark:bg-[#0E1117] border border-[#E6DEC8] dark:border-[#1E2433] p-5 text-center">
+        <div className="my-5 border-y border-[#E5DEC9] px-2 py-5 text-center dark:border-[#34302A] sm:my-6 sm:px-6 sm:py-6">
           <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#141413] dark:text-[#F5F0E6]">
             RESIDENTIAL TENANCY AGREEMENT & HOUSE RULES
           </h2>
@@ -132,28 +157,28 @@ export default function TenantAgreement() {
             <p className="text-[11px] font-bold uppercase tracking-wider text-[#9A7418] dark:text-[#D4AF37]">
               1. Resident / Lessee Details
             </p>
-            <dl className="mt-3 space-y-2 text-xs">
-              <div className="flex justify-between">
+            <dl className="mt-3 space-y-2.5 text-xs sm:text-[13px]">
+              <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
                 <dt className="text-[#7A7267]">Full Legal Name:</dt>
-                <dd className="font-bold text-[#141413] dark:text-[#F5F0E6]">
+                <dd className="min-w-0 break-words font-bold text-[#141413] dark:text-[#F5F0E6] sm:max-w-[60%] sm:text-right">
                   {user?.fullName || "Registered Resident"}
                 </dd>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
                 <dt className="text-[#7A7267]">Email Address:</dt>
-                <dd className="font-medium text-[#141413] dark:text-[#F5F0E6]">
+                <dd className="min-w-0 break-all font-medium text-[#141413] dark:text-[#F5F0E6] sm:max-w-[60%] sm:text-right">
                   {user?.email || "—"}
                 </dd>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
                 <dt className="text-[#7A7267]">Mobile Number:</dt>
-                <dd className="font-medium text-[#141413] dark:text-[#F5F0E6]">
+                <dd className="min-w-0 break-words font-medium text-[#141413] dark:text-[#F5F0E6] sm:max-w-[60%] sm:text-right">
                   {user?.phone || "—"}
                 </dd>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
                 <dt className="text-[#7A7267]">National ID / Passport:</dt>
-                <dd className="font-medium text-[#141413] dark:text-[#F5F0E6]">
+                <dd className="min-w-0 break-words font-medium text-[#141413] dark:text-[#F5F0E6] sm:max-w-[60%] sm:text-right">
                   {user?.nationalId || "Verified on File"}
                 </dd>
               </div>
@@ -164,32 +189,32 @@ export default function TenantAgreement() {
             <p className="text-[11px] font-bold uppercase tracking-wider text-[#9A7418] dark:text-[#D4AF37]">
               2. Assigned Suite & Rent Schedule
             </p>
-            <dl className="mt-3 space-y-2 text-xs">
-              <div className="flex justify-between">
+            <dl className="mt-3 space-y-2.5 text-xs sm:text-[13px]">
+              <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
                 <dt className="text-[#7A7267]">Suite / Flat Number:</dt>
-                <dd className="font-bold text-[#141413] dark:text-[#D4AF37]">
+                <dd className="min-w-0 break-words font-bold text-[#141413] dark:text-[#D4AF37] sm:max-w-[60%] sm:text-right">
                   {unit
                     ? `Suite ${unit.unitNumber} · ${formatFloor(unit.floor, unit.unitNumber)}`
                     : "Pending Assignment"}
                 </dd>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
                 <dt className="text-[#7A7267]">Configuration & Size:</dt>
-                <dd className="font-medium text-[#141413] dark:text-[#F5F0E6]">
+                <dd className="min-w-0 break-words font-medium text-[#141413] dark:text-[#F5F0E6] sm:max-w-[60%] sm:text-right">
                   {unit
                     ? `${unit.bedrooms} Bed · ${unit.sizeSqft} Sq.Ft`
                     : "Standard 3BHK Residence"}
                 </dd>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
                 <dt className="text-[#7A7267]">Locked Monthly Rent:</dt>
-                <dd className="font-bold text-emerald-700 dark:text-emerald-400">
+                <dd className="min-w-0 break-words font-bold text-[#8F6B14] dark:text-[#D4AF37] sm:max-w-[60%] sm:text-right">
                   {unit ? `${formatCurrency(unit.rentAmount)} / Month` : "As per Suite Rate"}
                 </dd>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-3">
                 <dt className="text-[#7A7267]">Due Window & Overdue Cutoff:</dt>
-                <dd className="font-semibold text-[#141413] dark:text-[#F5F0E6]">
+                <dd className="min-w-0 break-words font-semibold text-[#141413] dark:text-[#F5F0E6] sm:max-w-[60%] sm:text-right">
                   1st–10th Due · Overdue after 10th
                 </dd>
               </div>
@@ -199,21 +224,21 @@ export default function TenantAgreement() {
 
         {/* Highlight Comparison: Natural Wear & Tear (FREE) vs Intentional Damage (FEE) */}
         <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-emerald-300/80 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-950/25 p-5">
+          <div className="rounded-xl border border-[#E5DEC9] bg-[#FCFAF5] p-4 dark:border-[#34302A] dark:bg-[#171B25] sm:p-5">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white">
-                <HeartHandshake className="h-5 w-5" />
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F2ECE1] text-[#8F6B14] dark:bg-[#242B3D] dark:text-[#D4AF37]">
+                <HeartHandshake className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="font-display text-base font-bold text-emerald-950 dark:text-emerald-200">
+                <h3 className="font-display text-sm font-bold text-[#29251E] dark:text-[#F5F0E6]">
                   Natural Wear &amp; Tear — Zero Fee (0 BDT)
                 </h3>
-                <p className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+                <p className="text-[11px] font-medium text-[#7A7267] dark:text-[#9A9488]">
                   100% Covered by Building Management
                 </p>
               </div>
             </div>
-            <p className="mt-3 text-xs leading-relaxed text-emerald-900 dark:text-emerald-200/90">
+            <p className="mt-3 text-xs leading-relaxed text-[#5C5549] dark:text-[#C8C2B8]">
               If any fixture, internal water line, electrical switchboard, structural wall paint, or
               common utility experiences <strong>normal aging, natural wear and tear, or unintentional
               technical fault</strong>, the Resident shall <strong>NOT pay any extra repair fee</strong>.
@@ -221,21 +246,21 @@ export default function TenantAgreement() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-rose-300/80 dark:border-rose-500/30 bg-rose-50/60 dark:bg-rose-950/25 p-5">
+          <div className="rounded-xl border border-[#E5DEC9] bg-[#FCFAF5] p-4 dark:border-[#34302A] dark:bg-[#171B25] sm:p-5">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-600 text-white">
-                <ShieldAlert className="h-5 w-5" />
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F2ECE1] text-[#8F6B14] dark:bg-[#242B3D] dark:text-[#D4AF37]">
+                <ShieldAlert className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="font-display text-base font-bold text-rose-950 dark:text-rose-200">
+                <h3 className="font-display text-sm font-bold text-[#29251E] dark:text-[#F5F0E6]">
                   Intentional or Negligent Damage — Fee Applies
                 </h3>
-                <p className="text-[11px] font-medium text-rose-700 dark:text-rose-400">
+                <p className="text-[11px] font-medium text-[#7A7267] dark:text-[#9A9488]">
                   Full Restoration / Compensation Liability
                 </p>
               </div>
             </div>
-            <p className="mt-3 text-xs leading-relaxed text-rose-900 dark:text-rose-200/90">
+            <p className="mt-3 text-xs leading-relaxed text-[#5C5549] dark:text-[#C8C2B8]">
               If the Resident, family member, domestic staff, or visitor <strong>intentionally,
               recklessly, or negligently damages</strong> any apartment property (glass windows, doors,
               locks, sanitary ware, marble/tiles, cabinetry, or elevator/lobby fixtures), the Resident
@@ -245,7 +270,7 @@ export default function TenantAgreement() {
         </div>
 
         {/* Detailed Legal Articles & Building Regulations */}
-        <div className="space-y-4 text-xs leading-relaxed text-[#2C2925] dark:text-[#D5CFC4]">
+        <div className="space-y-4 text-[13px] leading-6 text-[#2C2925] dark:text-[#D5CFC4]">
           <h3 className="font-display text-lg font-bold text-[#141413] dark:text-[#F5F0E6] flex items-center gap-2">
             <Scale className="h-4 w-4 text-[#C59B27]" />
             Terms, Rules &amp; Regulations of Tenancy
@@ -314,7 +339,54 @@ export default function TenantAgreement() {
           </div>
         </div>
 
-        {/* Digital Signature & Verification Seal Footer */}
+        {/* Resident signature upload and print-ready signature area */}
+        <div className="no-print mt-8 rounded-xl border border-[#E5DEC9] bg-[#FCFAF5] p-4 dark:border-[#34302A] dark:bg-[#171B25] sm:flex sm:items-center sm:justify-between sm:gap-5">
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold text-[#29251E] dark:text-[#F5F0E6]">Add your signature</h3>
+            <p className="mt-1 text-xs leading-relaxed text-[#7A7267] dark:text-[#9A9488]">
+              Upload a clear image of your handwritten signature. It will appear on the agreement when you print or save it as PDF. The image stays in this browser and is not sent to the server.
+            </p>
+            {signatureFileName && <p className="mt-1 truncate text-[11px] text-[#8F6B14] dark:text-[#D4AF37]">Selected: {signatureFileName}</p>}
+            {signatureError && <p role="alert" className="mt-1 text-xs text-[#8F6B14] dark:text-[#D4AF37]">{signatureError}</p>}
+          </div>
+          <div className="mt-3 flex shrink-0 flex-wrap items-center gap-2 sm:mt-0">
+            <label htmlFor="tenant-signature-upload" className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#D4AF37] px-4 py-2 text-sm font-semibold text-[#141413] transition hover:bg-[#C59B27]">
+              <ImageUp className="h-4 w-4" />
+              {signatureData ? "Replace signature" : "Upload signature"}
+            </label>
+            <input
+              id="tenant-signature-upload"
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={handleSignatureUpload}
+              className="sr-only"
+            />
+            {signatureData && (
+              <button type="button" onClick={() => { setSignatureData(""); setSignatureFileName(""); }} className="min-h-10 rounded-xl border border-[#E5DEC9] px-3 py-2 text-xs font-medium text-[#5C5549] hover:bg-white dark:border-[#3A3427] dark:text-[#C8C2B8] dark:hover:bg-[#0E1117]">
+                Remove
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 gap-7 border-t border-[#E5DEC9] pt-6 dark:border-[#34302A] sm:grid-cols-2">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#8C8479]">Resident signature</p>
+            <div className="mt-2 flex h-16 items-end border-b border-[#BDB29E] pb-1">
+              {signatureData && <img src={signatureData} alt="Uploaded tenant signature" className="max-h-14 max-w-full object-contain object-left-bottom" />}
+            </div>
+            <p className="mt-2 text-xs font-semibold text-[#29251E] dark:text-[#F5F0E6]">{user?.fullName || "Resident / Lessee"}</p>
+            <p className="mt-1 text-[11px] text-[#7A7267] dark:text-[#9A9488]">Date: __________________</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#8C8479]">For Rent Nest Luxury Estates</p>
+            <div className="mt-2 h-16 border-b border-[#BDB29E]" />
+            <p className="mt-2 text-xs font-semibold text-[#29251E] dark:text-[#F5F0E6]">Authorized representative</p>
+            <p className="mt-1 text-[11px] text-[#7A7267] dark:text-[#9A9488]">Date: __________________</p>
+          </div>
+        </div>
+
+        {/* Digital Verification Seal Footer */}
         <div className="mt-8 border-t-2 border-[#E5DEC9] dark:border-[#252C3D] pt-6">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div>

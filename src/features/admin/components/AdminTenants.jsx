@@ -254,6 +254,7 @@ export default function AdminTenants() {
   };
 
   const columns = createTenantColumns({ actionId, setApprovalTarget, setApprovalUnitId, handleReject, openEditModal, handleToggleActive, setDeleteTarget });
+  const columnByKey = Object.fromEntries(columns.map((column) => [column.key, column]));
   const totalResidents = pagination?.total ?? tenants.length;
 
   return (
@@ -273,19 +274,20 @@ export default function AdminTenants() {
         }
       />
 
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex min-w-0 flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <FilterTabs
           value={status}
           onChange={handleStatusChange}
           options={STATUS_TABS}
         />
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center xl:justify-end">
           <SearchInput
             value={search}
             onChange={setSearch}
             placeholder="Search name, email, phone or NID"
+            className="sm:min-w-0 sm:flex-1 xl:flex-none"
           />
-          <span className="inline-flex items-center gap-1.5 text-xs text-[#7A7267]">
+          <span className="inline-flex shrink-0 items-center gap-1.5 text-xs text-[#7A7267]">
             <ShieldCheck className="h-4 w-4 text-[#C59B27]" />
             {totalResidents} Registered Resident(s)
           </span>
@@ -293,18 +295,59 @@ export default function AdminTenants() {
       </div>
 
       <Card padding="p-0" className="overflow-hidden">
-        <DataTable
-          columns={columns}
-          data={tenants}
-          isLoading={loading}
-          emptyTitle="No residents found"
-          emptyDescription="Click 'Add Resident & Assign Suite' to onboard your first tenant."
-          footer={
-            pagination ? (
-              <Pagination pagination={pagination} onPageChange={setPage} />
-            ) : null
-          }
-        />
+        <div className="space-y-3 p-3 2xl:hidden">
+          {loading ? (
+            Array.from({ length: 4 }, (_, index) => (
+              <div key={index} className="h-36 animate-pulse rounded-2xl bg-[#F2ECE1] dark:bg-[#1B2130]" />
+            ))
+          ) : tenants.length ? (
+            tenants.map((tenant) => (
+              <article key={tenant._id} className={`group relative min-w-0 overflow-hidden rounded-2xl border border-[#E8DFCE] bg-gradient-to-br from-white via-white to-[#FBF7EE] p-4 shadow-sm transition duration-200 before:absolute before:inset-x-8 before:top-0 before:h-0.5 before:rounded-full before:bg-gradient-to-r before:from-transparent before:via-[#D4AF37] before:to-transparent hover:-translate-y-0.5 hover:border-[#D6C18B] hover:shadow-md dark:border-[#252C3D] dark:from-[#151A24] dark:via-[#131722] dark:to-[#171B25] dark:hover:border-[#806A32] sm:p-5 ${tenant.approvalStatus === "pending" ? "pb-4" : "pb-12"}`}>
+                <div className="flex min-w-0 items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    {columnByKey.resident.render(tenant)}
+                  </div>
+                  <div className="shrink-0">
+                    {columnByKey.status.render(tenant)}
+                  </div>
+                </div>
+                <div className="mt-4 grid min-w-0 grid-cols-1 gap-2.5 border-t border-[#EFE9DC] pt-3 text-xs dark:border-[#1C2230] sm:grid-cols-2">
+                  <div className="min-w-0 rounded-xl border border-[#EFE9DC] bg-white/80 p-3 dark:border-[#252C3D] dark:bg-[#10131A]/70">
+                    <p className="mb-1 font-semibold uppercase tracking-wide text-[#8C8479]">Contact</p>
+                    {columnByKey.contact.render(tenant)}
+                  </div>
+                  <div className="min-w-0 rounded-xl border border-[#EFE9DC] bg-white/80 p-3 dark:border-[#252C3D] dark:bg-[#10131A]/70">
+                    <p className="mb-1 font-semibold uppercase tracking-wide text-[#8C8479]">Suite & Lease</p>
+                    <div>{columnByKey.unit.render(tenant)}</div>
+                    <div className="mt-1">{columnByKey.joined.render(tenant)}</div>
+                  </div>
+                </div>
+                <div className={tenant.approvalStatus === "pending"
+                  ? "mt-3 border-t border-[#EFE9DC] pt-3 dark:border-[#1C2230]"
+                  : "pointer-events-none absolute bottom-2.5 right-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 [@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100 sm:right-4"}>
+                  {columnByKey.actions.render(tenant)}
+                </div>
+              </article>
+            ))
+          ) : (
+            <p className="rounded-xl px-4 py-10 text-center text-sm text-[#7A7267]">No residents found. Try another filter or add a resident.</p>
+          )}
+          {pagination && <Pagination pagination={pagination} onPageChange={setPage} />}
+        </div>
+        <div className="hidden 2xl:block">
+          <DataTable
+            columns={columns}
+            data={tenants}
+            isLoading={loading}
+            emptyTitle="No residents found"
+            emptyDescription="Click 'Add Resident & Assign Suite' to onboard your first tenant."
+            footer={
+              pagination ? (
+                <Pagination pagination={pagination} onPageChange={setPage} />
+              ) : null
+            }
+          />
+        </div>
       </Card>
 
       {/* Direct Admin Tenant Onboarding & Edit Modal */}

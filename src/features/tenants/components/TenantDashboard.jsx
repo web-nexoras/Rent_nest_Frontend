@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { getTenantDashboard } from "@/features/tenants/api/dashboardApi.js";
 import { initSslPayment } from "@/features/payments/api/paymentApi.js";
+import SecureCheckoutModal from "@/features/payments/components/SecureCheckoutModal.jsx";
 import { useAuth } from "@/hooks/useAuth.jsx";
 import { useToast } from "@/components/feedback/ToastContext.jsx";
 import { PageHeader, Card, CardHeader, Skeleton } from "@/components/common/Layout.jsx";
@@ -32,6 +33,7 @@ export default function TenantDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [payingSsl, setPayingSsl] = useState(false);
+  const [sslConfirmOpen, setSslConfirmOpen] = useState(false);
 
   const loadDashboard = useCallback(async () => {
     try {
@@ -49,7 +51,12 @@ export default function TenantDashboard() {
     loadDashboard();
   }, [loadDashboard]);
 
-  const handlePayOnlineNow = async () => {
+  const handlePayOnlineNow = () => {
+    if (unit && needsPayment && !payingSsl) setSslConfirmOpen(true);
+  };
+
+  const continueSslCheckout = async () => {
+    if (!unit || !needsPayment || payingSsl) return;
     try {
       setPayingSsl(true);
       const res = await initSslPayment({
@@ -242,6 +249,16 @@ export default function TenantDashboard() {
           </div>
         </div>
       )}
+
+      <SecureCheckoutModal
+        isOpen={sslConfirmOpen}
+        onClose={() => setSslConfirmOpen(false)}
+        onConfirm={continueSslCheckout}
+        isLoading={payingSsl}
+        unit={unit}
+        amount={unit?.rentAmount || 0}
+        month={data?.currentMonth}
+      />
 
       {/* Top 4 Resident KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
