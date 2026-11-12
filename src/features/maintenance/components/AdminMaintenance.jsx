@@ -74,7 +74,7 @@ function DetailModal({ request, onClose, onDelete }) {
         </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-navy-400">Issue Description</p>
-          <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-navy-700">{request.description}</p>
+          <p className="mt-1.5 break-words whitespace-pre-wrap text-sm leading-relaxed text-navy-700">{request.description}</p>
         </div>
         {request.images?.length > 0 && (
           <div>

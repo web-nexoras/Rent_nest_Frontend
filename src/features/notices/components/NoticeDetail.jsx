@@ -81,11 +81,11 @@ export default function NoticeDetail() {
             </div>
           </div>
 
-          <h1 className="mt-5 font-display text-2xl font-bold tracking-tight text-[#141413] dark:text-[#F5F0E6]">
+          <h1 className="mt-5 break-words font-display text-2xl font-bold tracking-tight text-[#141413] dark:text-[#F5F0E6]">
             {notice.title}
           </h1>
 
-          <div className="mt-4 whitespace-pre-line text-sm leading-relaxed text-[#3E3A35] dark:text-[#D5D0C6]">
+          <div className="mt-4 break-words whitespace-pre-line text-sm leading-relaxed text-[#3E3A35] dark:text-[#D5D0C6]">
             {notice.description}
           </div>
 

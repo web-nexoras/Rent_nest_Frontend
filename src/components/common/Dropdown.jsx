@@ -53,7 +53,7 @@ export function DropdownItem({ icon: Icon, danger, children, ...props }) {
       type="button"
       role="menuitem"
       className={cn(
-        "flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-medium transition",
+        "flex min-h-10 w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-medium transition",
         danger
           ? "text-rose-600 hover:bg-rose-50"
           : "text-navy-700 hover:bg-navy-100/80 hover:text-navy-900",

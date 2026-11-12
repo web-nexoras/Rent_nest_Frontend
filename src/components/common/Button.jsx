@@ -22,11 +22,11 @@ const variants = {
 };
 
 const sizes = {
-  xs: "min-h-8 px-3 py-1 text-xs rounded-full gap-1.5",
-  sm: "min-h-9 px-3.5 py-1.5 text-xs rounded-full gap-1.5",
+  xs: "min-h-10 px-3 py-1 text-xs rounded-full gap-1.5 sm:min-h-8",
+  sm: "min-h-10 px-3.5 py-1.5 text-xs rounded-full gap-1.5 sm:min-h-9",
   md: "min-h-10 px-4.5 py-2 text-sm rounded-full gap-2",
   lg: "min-h-11 px-6 py-2 text-sm rounded-full gap-2",
-  icon: "h-9 w-9 rounded-full p-0",
+  icon: "h-10 w-10 rounded-full p-0 sm:h-9 sm:w-9",
 };
 
 export const Button = React.forwardRef(

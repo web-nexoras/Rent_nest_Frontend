@@ -107,7 +107,7 @@ export function ToastProvider({ children }) {
                 {/* Dismiss Button */}
                 <button
                   onClick={() => dismiss(toast.id)}
-                  className="rounded-lg p-1 text-[#8C8479] hover:bg-[#EFE9DC] hover:text-[#141413] dark:text-[#6E675F] dark:hover:bg-[#1E2433] dark:hover:text-[#F5F0E6] transition-colors"
+                  className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg p-1 text-[#8C8479] hover:bg-[#EFE9DC] hover:text-[#141413] dark:text-[#6E675F] dark:hover:bg-[#1E2433] dark:hover:text-[#F5F0E6] transition-colors"
                   aria-label="Dismiss notification"
                 >
                   <X className="h-4 w-4" />

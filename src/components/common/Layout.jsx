@@ -28,7 +28,7 @@ export function PageHeader({ eyebrow, title, description, actions, badge, classN
           </p>
         )}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2.5 sm:shrink-0">{actions}</div>}
+      {actions && <div className="flex max-w-full flex-wrap items-center gap-2.5">{actions}</div>}
     </div>
   );
 }
@@ -49,7 +49,7 @@ export function Card({ title, subtitle, action, padded = true, padding, children
               <p className="text-xs text-[#7A7267] dark:text-[#9A9488] mt-0.5">{subtitle}</p>
             )}
           </div>
-          {action && <div className="shrink-0">{action}</div>}
+          {action && <div className="max-w-full">{action}</div>}
         </div>
       )}
       {children}
@@ -75,7 +75,7 @@ export function CardHeader({ title, subtitle, action, icon: Icon, className }) {
           )}
         </div>
       </div>
-      {action && <div className="shrink-0">{action}</div>}
+      {action && <div className="max-w-full">{action}</div>}
     </div>
   );
 }

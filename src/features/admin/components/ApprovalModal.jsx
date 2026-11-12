@@ -24,14 +24,14 @@ export function ApprovalModal({
       description="Approve this resident to grant access. You can assign a suite now or leave them unassigned until one opens up."
     >
       <div className="space-y-4">
-        <div className="rounded-2xl border border-[#E5DEC9] dark:border-[#252C3D] bg-[#FAF7F2] dark:bg-[#0B0D11] p-4 text-xs space-y-1.5">
+        <div className="min-w-0 rounded-2xl border border-[#E5DEC9] dark:border-[#252C3D] bg-[#FAF7F2] dark:bg-[#0B0D11] p-4 text-xs space-y-1.5">
           <p className="font-semibold text-[#141413] dark:text-[#F5F0E6]">
             {approvalTarget.fullName || approvalTarget.name}
           </p>
-          <p className="text-[#6E675F] dark:text-[#9A9488]">
+          <p className="break-all text-[#6E675F] dark:text-[#9A9488]">
             Email: {approvalTarget.email}
           </p>
-          <p className="text-[#6E675F] dark:text-[#9A9488]">
+          <p className="break-words text-[#6E675F] dark:text-[#9A9488]">
             Phone: {approvalTarget.phone || "Not provided"}
           </p>
           {approvalTarget.occupation && (
@@ -40,7 +40,7 @@ export function ApprovalModal({
             </p>
           )}
           {approvalTarget.address && (
-            <p className="text-[#6E675F] dark:text-[#9A9488]">
+            <p className="break-words text-[#6E675F] dark:text-[#9A9488]">
               Address: {approvalTarget.address}
             </p>
           )}

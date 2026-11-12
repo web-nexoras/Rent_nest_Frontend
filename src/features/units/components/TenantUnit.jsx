@@ -89,7 +89,7 @@ export default function TenantUnit() {
           {unit.description && (
             <div className="border-t border-navy-100/80 p-5">
               <h3 className="text-xs font-bold uppercase tracking-wider text-navy-400">About this unit</h3>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-navy-600">{unit.description}</p>
+              <p className="mt-2 break-words whitespace-pre-wrap text-sm leading-relaxed text-navy-600">{unit.description}</p>
             </div>
           )}
         </Card>

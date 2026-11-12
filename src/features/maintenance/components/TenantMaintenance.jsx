@@ -157,7 +157,7 @@ export default function TenantMaintenance() {
                   </div>
                   <Badge status={request.status} />
                 </div>
-                <p className="mt-4 flex-1 whitespace-pre-wrap text-sm leading-relaxed text-navy-600">{request.description}</p>
+                <p className="mt-4 flex-1 break-words whitespace-pre-wrap text-sm leading-relaxed text-navy-600">{request.description}</p>
                 {request.images?.length > 0 && (
                   <div className="mt-4 flex gap-2">
                     {request.images.map((src) => (

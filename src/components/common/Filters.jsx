@@ -48,7 +48,7 @@ export function FilterTabs({ options = [], value, onChange, className }) {
             type="button"
             onClick={() => onChange(opt.value)}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all",
+              "inline-flex min-h-10 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all",
               isActive
                 ? "bg-[#121212] text-white shadow-xs dark:bg-gradient-to-r dark:from-[#D4AF37] dark:to-[#C59B27] dark:text-[#0B0D11]"
                 : "text-[#5C5549] dark:text-[#9A9488] hover:text-[#141413] dark:hover:text-white"

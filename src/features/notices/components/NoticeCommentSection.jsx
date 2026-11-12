@@ -72,8 +72,8 @@ export function NoticeCommentSection({
               >
                 <Avatar name={authorName} size="sm" />
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-semibold text-xs text-[#141413] dark:text-[#F5F0E6]">
+                  <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+                    <span className="min-w-0 break-words font-semibold text-xs text-[#141413] dark:text-[#F5F0E6]">
                       {authorName}
                     </span>
                     <div className="flex items-center gap-2">
@@ -84,7 +84,7 @@ export function NoticeCommentSection({
                         <button
                           type="button"
                           onClick={() => onDeleteComment(comment)}
-                          className="opacity-0 group-hover:opacity-100 text-rose-500 hover:text-rose-600 transition-opacity p-1"
+                          className="inline-flex min-h-10 min-w-10 items-center justify-center text-rose-500 opacity-0 transition-opacity group-hover:opacity-100 hover:text-rose-600 [@media(hover:none)]:opacity-100"
                           title="Delete comment"
                         >
                           <Trash2 className="h-3.5 w-3.5" />

@@ -5,7 +5,7 @@ import { formatDate } from "@/utils/helpers.js";
 
 export function NoticeCard({ notice, isAdmin, onEdit, onDelete }) {
   return (
-    <article className="card-interactive group flex flex-col p-5">
+    <article className="card-interactive group flex min-w-0 flex-col p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-[#C59B27] dark:text-[#D4AF37] ring-1 ring-[#D4AF37]/30">
           <Megaphone className="h-5 w-5" />
@@ -33,11 +33,11 @@ export function NoticeCard({ notice, isAdmin, onEdit, onDelete }) {
         )}
       </div>
 
-      <Link to={`/notices/${notice._id}`} className="mt-4 block flex-1">
-        <h3 className="line-clamp-2 font-display text-base font-bold text-[#141413] dark:text-[#F5F0E6] transition-colors group-hover:text-[#C59B27] dark:group-hover:text-[#D4AF37]">
+      <Link to={`/notices/${notice._id}`} className="mt-4 block min-w-0 flex-1">
+        <h3 className="line-clamp-2 break-words font-display text-base font-bold text-[#141413] dark:text-[#F5F0E6] transition-colors group-hover:text-[#C59B27] dark:group-hover:text-[#D4AF37]">
           {notice.title}
         </h3>
-        <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-[#6E675F] dark:text-[#9A9488]">
+        <p className="mt-2 line-clamp-3 break-words text-sm leading-relaxed text-[#6E675F] dark:text-[#9A9488]">
           {notice.description}
         </p>
       </Link>

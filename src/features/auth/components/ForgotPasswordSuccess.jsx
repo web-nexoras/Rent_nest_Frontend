@@ -18,7 +18,7 @@ export default function ForgotPasswordSuccess({ email }) {
         </h2>
         <p className="mt-2 text-xs leading-relaxed text-[#6E675F] dark:text-[#9A9488]">
           If an account exists for{" "}
-          <span className="font-semibold text-[#141413] dark:text-[#F5F0E6]">{email}</span>,
+          <span className="break-all font-semibold text-[#141413] dark:text-[#F5F0E6]">{email}</span>,
           we have sent a password reset link. It expires in 15 minutes.
         </p>
       </section>

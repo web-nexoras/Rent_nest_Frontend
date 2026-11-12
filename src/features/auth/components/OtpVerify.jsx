@@ -69,7 +69,7 @@ export default function OtpVerify() {
         </div>
         <AuthHeader
           title="Verify your email"
-          subtitle={<>We sent a 4-digit code to <span className="font-semibold text-[#141413] dark:text-[#F5F0E6]">{email}</span>.</>}
+          subtitle={<>We sent a 4-digit code to <span className="break-all font-semibold text-[#141413] dark:text-[#F5F0E6]">{email}</span>.</>}
         />
       </section>
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
