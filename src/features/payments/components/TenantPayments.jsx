@@ -14,7 +14,12 @@ import {
 import { getTenantDashboard } from "@/features/tenants/api/dashboardApi.js";
 import { useAuth } from "@/hooks/useAuth.jsx";
 import { useToast } from "@/components/feedback/ToastContext.jsx";
-import { PageHeader, Card, CardHeader } from "@/components/common/Layout.jsx";
+import {
+  PageHeader,
+  Card,
+  CardHeader,
+  Skeleton,
+} from "@/components/common/Layout.jsx";
 import { DataTable } from "@/components/common/DataTable.jsx";
 import { Input, Select } from "@/components/common/Input.jsx";
 import { Modal } from "@/components/common/Modal.jsx";
@@ -56,6 +61,8 @@ export default function TenantPayments() {
   const [loading, setLoading] = useState(true);
 
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthString());
+  const selectedMonthRef = useRef(selectedMonth);
+  const loadRequestRef = useRef(0);
   const [payingSsl, setPayingSsl] = useState(false);
   const [sslConfirmOpen, setSslConfirmOpen] = useState(false);
   const [manualModalOpen, setManualModalOpen] = useState(false);
@@ -69,13 +76,21 @@ export default function TenantPayments() {
 
   const [receiptPayment, setReceiptPayment] = useState(null);
 
+  useEffect(() => {
+    selectedMonthRef.current = selectedMonth;
+  }, [selectedMonth]);
+
   const loadData = useCallback(async () => {
+    const requestId = ++loadRequestRef.current;
     try {
       setLoading(true);
+      setPayments([]);
       const [payRes, dashRes] = await Promise.all([
         getMyPayments(),
         getTenantDashboard().catch(() => null),
       ]);
+      if (requestId !== loadRequestRef.current) return;
+
       const list = payRes?.payments || [];
       const nextUnit = dashRes?.unit || user?.assignedUnit || null;
       setPayments(list);
@@ -106,7 +121,7 @@ export default function TenantPayments() {
         clearParams("ssl", "paymentId");
       } else if (searchParams.get("pay") === "1" && nextUnit) {
         setManualForm({
-          month: selectedMonth,
+          month: selectedMonthRef.current,
           method: "bkash",
           transactionId: "",
         });
@@ -114,26 +129,38 @@ export default function TenantPayments() {
         clearParams("pay");
       }
     } catch (err) {
-      toast.error(getErrorMessage(err, "Failed to load payments"));
+      if (requestId === loadRequestRef.current) {
+        toast.error(getErrorMessage(err, "Failed to load payments"));
+      }
     } finally {
-      setLoading(false);
+      if (requestId === loadRequestRef.current) setLoading(false);
     }
-  }, [searchParams, setSearchParams, toast, user?.assignedUnit, selectedMonth]);
+  }, [searchParams, setSearchParams, toast, user?.assignedUnit]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
+  const joinMonth = useMemo(
+    () => unit?.assignedMonth || getCurrentMonthString(),
+    [unit?.assignedMonth]
+  );
+  const visiblePayments = useMemo(
+    () => payments.filter((payment) => payment.month >= joinMonth),
+    [payments, joinMonth]
+  );
+
   // Fixed monthly rent locked strictly to the assigned unit's rentAmount
   const lockedRentAmount = unit?.rentAmount || 0;
-  const selectedRecord = payments.find((p) => p.month === selectedMonth);
+  const selectedRecord = visiblePayments.find((p) => p.month === selectedMonth);
   const paymentLocked =
     selectedRecord?.status === "pending" || selectedRecord?.status === "verified";
-  const manualMonthRecord = payments.find((payment) => payment.month === manualForm.month);
+  const manualMonthRecord = visiblePayments.find((payment) => payment.month === manualForm.month);
   const manualMonthLocked =
     manualMonthRecord?.status === "pending" || manualMonthRecord?.status === "verified";
 
   const handleSslCheckout = async () => {
+    if (loading) return;
     if (!unit) {
       toast.error("You do not have an assigned suite yet.");
       return;
@@ -143,7 +170,7 @@ export default function TenantPayments() {
   };
 
   const continueSslCheckout = async () => {
-    if (!unit || paymentLocked || payingSsl) return;
+    if (!unit || loading || paymentLocked || payingSsl) return;
     try {
       setPayingSsl(true);
       const res = await initSslPayment({ month: selectedMonth });
@@ -207,21 +234,6 @@ export default function TenantPayments() {
 
   // Build 12-month calendar overview for current year.
   // Months before the tenancy began are hidden.
-  const joinMonth = useMemo(() => {
-    const dates = [user?.createdAt, ...payments.map((p) => p.createdAt)]
-      .filter(Boolean)
-      .map((value) => new Date(value))
-      .filter((date) => !Number.isNaN(date.getTime()));
-
-    if (!dates.length) return `${new Date().getFullYear()}-01`;
-
-    const earliest = new Date(Math.min(...dates.map((date) => date.getTime())));
-    return `${earliest.getFullYear()}-${String(earliest.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}`;
-  }, [user?.createdAt, payments]);
-
   const calendarMonths = useMemo(() => {
     const year = new Date().getFullYear();
     const currentMonthStr = getCurrentMonthString();
@@ -230,7 +242,7 @@ export default function TenantPayments() {
     return Array.from({ length: 12 }, (_, idx) => {
       const m = String(idx + 1).padStart(2, "0");
       const key = `${year}-${m}`;
-      const record = payments.find((p) => p.month === key);
+      const record = visiblePayments.find((p) => p.month === key);
       let state = "upcoming";
 
       if (record?.status === "verified") state = "paid";
@@ -247,8 +259,8 @@ export default function TenantPayments() {
         state,
         record,
       };
-    }).filter((item) => item.key >= joinMonth || item.record);
-  }, [payments, joinMonth]);
+    }).filter((item) => item.key >= joinMonth);
+  }, [visiblePayments, joinMonth]);
 
   const columns = createTenantPaymentColumns({ unit, onReceipt: openReceipt });
 
@@ -262,7 +274,7 @@ export default function TenantPayments() {
             <button
               type="button"
               className="inline-flex min-h-10 w-full min-w-0 items-center justify-center gap-2 rounded-xl border border-[#E5DEC9] bg-white px-4 py-2 text-center text-sm font-semibold leading-snug text-[#141413] hover:bg-[#F6F2E9] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:border-[#252C3D] dark:bg-[#131722] dark:text-[#F5F0E6]"
-              disabled={paymentLocked}
+              disabled={loading || paymentLocked}
               onClick={() => {
                 setManualForm({
                   month: selectedMonth,
@@ -278,7 +290,12 @@ export default function TenantPayments() {
           )
         }
       />
-      {unit && (
+      {loading ? (
+        <Card className="space-y-3">
+          <Skeleton className="h-5 w-1/3" />
+          <Skeleton className="h-28 w-full" />
+        </Card>
+      ) : unit && (
         <TenantCheckoutCard
           unit={unit}
           lockedRentAmount={lockedRentAmount}
@@ -294,16 +311,22 @@ export default function TenantPayments() {
 
 
       {/* 12-Month Rent Compliance Calendar Grid */}
-      <PaymentCalendar
-        calendarMonths={calendarMonths}
-        onSelectMonth={(monthKey) => setSelectedMonth(monthKey)}
-      />
+      {loading ? (
+        <Card>
+          <Skeleton className="h-40 w-full" />
+        </Card>
+      ) : (
+        <PaymentCalendar
+          calendarMonths={calendarMonths}
+          onSelectMonth={(monthKey) => setSelectedMonth(monthKey)}
+        />
+      )}
 
       {/* Payment Ledger Table */}
       <Card padding="p-0" className="overflow-hidden">
         <DataTable
           columns={columns}
-          data={payments}
+          data={visiblePayments}
           isLoading={loading}
           emptyTitle="No rent payments recorded yet"
           emptyDescription="Use the SSLCommerz checkout above to settle your monthly rent."

@@ -7,6 +7,7 @@ import Badge from "@/components/common/Badge.jsx";
 import { Skeleton } from "@/components/common/Skeleton.jsx";
 import { EmptyState, ErrorState } from "@/components/feedback/States.jsx";
 import { getMyUnit } from "@/features/units/api/unitApi.js";
+import { getDefaultUnitImage } from "@/features/units/unitImages.js";
 import { formatFloor, formatMoney } from "@/utils/helpers.js";
 
 export default function TenantUnit() {
@@ -45,7 +46,12 @@ export default function TenantUnit() {
     );
   }
 
-  const images = unit.images || [];
+  const uploadedImages = Array.isArray(unit.images)
+    ? unit.images.filter((image) => typeof image === "string" && image.trim())
+    : [];
+  const images = uploadedImages.length
+    ? uploadedImages
+    : [getDefaultUnitImage(unit.unitNumber)];
 
   return (
     <>

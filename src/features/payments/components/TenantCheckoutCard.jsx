@@ -14,7 +14,7 @@ export default function TenantCheckoutCard({
   onCheckout,
 }) {
   return (
-    <section className="obsidian-card p-6 sm:p-7" aria-label="Online rent checkout">
+    <section className="obsidian-card border-[#3A362D] bg-[#242320] p-6 sm:p-7 dark:border-[#30384B] dark:bg-[#171C26]" aria-label="Online rent checkout">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-[#C59B27]/40 bg-[#C59B27]/15 px-3 py-1 text-xs font-semibold text-[#D4AF37]">
@@ -38,7 +38,7 @@ export default function TenantCheckoutCard({
           )}
         </div>
 
-        <section className="flex flex-col items-stretch gap-3 rounded-2xl border border-[#2A3042] bg-[#181B24] p-4 sm:flex-row sm:items-end" aria-label="Payment details">
+        <section className="flex flex-col items-stretch gap-3 rounded-2xl border border-[#41434B] bg-[#303038] p-4 sm:flex-row sm:items-end dark:border-[#30384B] dark:bg-[#212836]" aria-label="Payment details">
           <div className="w-full sm:w-auto">
             <label htmlFor="billing-month" className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[#9A9488]">
               Billing Month
@@ -49,7 +49,7 @@ export default function TenantCheckoutCard({
               min={minMonth}
               value={selectedMonth}
               onChange={(event) => onMonthChange(event.target.value)}
-              className="h-10 w-full rounded-xl border border-[#2F364A] bg-[#0E1117] px-3 text-xs font-semibold text-white focus:border-[#D4AF37] focus:outline-none sm:w-auto"
+              className="h-10 w-full rounded-xl border border-[#51535B] bg-[#222329] px-3 text-xs font-semibold text-white focus:border-[#D4AF37] focus:outline-none sm:w-auto dark:border-[#3B4356] dark:bg-[#151A24]"
             />
           </div>
           <div className="w-full sm:w-auto">
@@ -61,7 +61,7 @@ export default function TenantCheckoutCard({
               type="text"
               readOnly
               value={formatCurrency(lockedRentAmount)}
-              className="h-10 w-full cursor-not-allowed rounded-xl border border-[#2F364A] bg-[#0E1117]/80 px-3 text-xs font-bold text-[#D4AF37] sm:w-36"
+              className="h-10 w-full cursor-not-allowed rounded-xl border border-[#51535B] bg-[#222329]/80 px-3 text-xs font-bold text-[#D4AF37] sm:w-36 dark:border-[#3B4356] dark:bg-[#151A24]"
             />
           </div>
           <button

@@ -80,6 +80,11 @@ export function ManualPaymentModal({
               : "Transaction / Reference ID"
           }
           placeholder="e.g. 8N7K3P2Q"
+          hint={
+            form.method === "cash"
+              ? undefined
+              : "Complete the transfer first, then enter its transaction/reference ID."
+          }
           required={form.method !== "cash"}
           value={form.transactionId}
           onChange={(e) =>

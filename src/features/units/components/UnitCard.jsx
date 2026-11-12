@@ -12,19 +12,7 @@ import {
 import { Button } from "@/components/common/Button.jsx";
 import { Badge } from "@/components/common/Badge.jsx";
 import { formatCurrency, formatFloor } from "@/utils/helpers.js";
-
-const UNIT_PHOTOS = [
-  "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=900&q=78",
-  "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=78",
-  "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=900&q=78",
-  "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=900&q=78",
-];
-
-const photoForUnit = (unitNumber = "") => {
-  const key = String(unitNumber);
-  const index = [...key].reduce((sum, char) => sum + char.charCodeAt(0), 0) % UNIT_PHOTOS.length;
-  return UNIT_PHOTOS[index];
-};
+import { getDefaultUnitImage } from "@/features/units/unitImages.js";
 
 export default function UnitCard({ unit, onAssign, onEdit, onVacate, onDelete }) {
   const isOccupied = unit.status === "occupied";
@@ -37,7 +25,7 @@ export default function UnitCard({ unit, onAssign, onEdit, onVacate, onDelete })
       <div className="relative h-28 overflow-hidden bg-gradient-to-br from-[#3A3429] via-[#77705F] to-[#D7C9A8] sm:h-32">
         <Building2 className="absolute left-1/2 top-1/2 h-9 w-9 -translate-x-1/2 -translate-y-1/2 text-white/50" />
         <img
-          src={customPhoto || photoForUnit(unit.unitNumber)}
+          src={customPhoto || getDefaultUnitImage(unit.unitNumber)}
           alt={`Suite ${unit.unitNumber} apartment`}
           loading="lazy"
           onError={(event) => event.currentTarget.remove()}
