@@ -75,13 +75,14 @@ export default function Signup() {
     }
 
     setIsSubmitting(true);
+    // Build payload outside try so catch block can reference it
+    const signupPayload = {
+      ...formData,
+      name: formData.name.trim(),
+      email: formData.email.trim().toLowerCase(),
+      phone: formData.phone.trim().replace(/[\s-]/g, ""),
+    };
     try {
-      const signupPayload = {
-        ...formData,
-        name: formData.name.trim(),
-        email: formData.email.trim().toLowerCase(),
-        phone: formData.phone.trim().replace(/[\s-]/g, ""),
-      };
       const response = await signup(signupPayload);
       toast.success(
         response?.message || "Your verification code is on its way to your email.",
@@ -101,7 +102,6 @@ export default function Signup() {
           state: {
             email: signupPayload.email,
             resendHint: true,
-            otpHint: err.response?.data?.devOtp,
           },
         });
         return;
