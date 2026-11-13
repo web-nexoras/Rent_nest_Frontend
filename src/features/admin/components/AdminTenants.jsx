@@ -210,8 +210,24 @@ export default function AdminTenants() {
         approvalUnitId || undefined
       );
       toast.success(res?.message || "Resident approved.", "Approval Complete");
+      // Update the visible list immediately. The API can briefly return a cached
+      // pending row after the mutation, so also request a fresh list below.
+      const approvedId = approvalTarget._id;
+      const leavesCurrentFilter = status === "pending";
+      setTenants((current) => leavesCurrentFilter
+        ? current.filter((tenant) => tenant._id !== approvedId)
+        : current.map((tenant) => tenant._id === approvedId
+          ? { ...tenant, approvalStatus: "approved" }
+          : tenant));
+      if (leavesCurrentFilter) {
+        setPagination((current) => current
+          ? { ...current, total: Math.max(0, current.total - 1) }
+          : current);
+      }
       setApprovalTarget(null);
       setApprovalUnitId("");
+      freshTenantListRef.current = true;
+      preserveTenantListRef.current = true;
       await loadData();
     } catch (err) {
       toast.error(getErrorMessage(err, "Could not approve resident"));
