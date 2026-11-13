@@ -98,7 +98,11 @@ export default function Signup() {
           "Account Created"
         );
         navigate("/verify-otp", {
-          state: { email: formData.email.trim().toLowerCase(), resendHint: true },
+          state: {
+            email: signupPayload.email,
+            resendHint: true,
+            otpHint: err.response?.data?.devOtp,
+          },
         });
         return;
       }

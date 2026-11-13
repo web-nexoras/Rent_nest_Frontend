@@ -13,7 +13,7 @@ export default function OtpVerify() {
   const navigate = useNavigate();
   const toast = useToast();
   const email = state?.email;
-  const [otp, setOtp] = useState("");
+  const [otp, setOtp] = useState(state?.otpHint ? String(state.otpHint) : "");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cooldown, setCooldown] = useState(state?.resendHint ? 0 : RESEND_SECONDS);
@@ -59,9 +59,15 @@ export default function OtpVerify() {
     setResending(true);
     try {
       const data = await resendOtp({ email });
+      if (data?.devOtp) {
+        setOtp(String(data.devOtp));
+      }
       toast.success(data.message || "Code resent to your email", "Sent");
       setCooldown(RESEND_SECONDS);
     } catch (err) {
+      if (err.response?.data?.devOtp) {
+        setOtp(String(err.response.data.devOtp));
+      }
       toast.error(getErrorMessage(err, "Failed to resend code"), "Error");
     } finally {
       setResending(false);
