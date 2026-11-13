@@ -89,6 +89,20 @@ export default function Signup() {
       );
       navigate("/verify-otp", { state: { email: signupPayload.email } });
     } catch (err) {
+      // The backend saves the account before sending the OTP. If delivery fails,
+      // continue to verification so the user can retry via "Resend code" instead
+      // of submitting the signup form again and hitting a duplicate account.
+      if (err.response?.status === 502 && err.response?.data?.userId) {
+        toast.error(
+          getErrorMessage(err, "Your account was created, but the verification email could not be sent."),
+          "Account Created"
+        );
+        navigate("/verify-otp", {
+          state: { email: formData.email.trim().toLowerCase(), resendHint: true },
+        });
+        return;
+      }
+
       toast.error(
         getErrorMessage(err, "Registration failed. Please check your inputs."),
         "Error"

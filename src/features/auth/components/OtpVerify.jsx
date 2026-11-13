@@ -75,7 +75,9 @@ export default function OtpVerify() {
         </div>
         <AuthHeader
           title="Verify your email"
-          subtitle={<>A 4-digit code is on its way to <span className="break-all font-semibold text-[#141413] dark:text-[#F5F0E6]">{email}</span>.</>}
+          subtitle={state?.resendHint
+            ? <>We couldn’t send the code to:<span className="mt-0.5 block break-all font-semibold text-[#141413] dark:text-[#F5F0E6]">{email}</span><span className="mt-0.5 block">Use “Resend code” to try again.</span></>
+            : <>A 4-digit code is on its way to <span className="break-all font-semibold text-[#141413] dark:text-[#F5F0E6]">{email}</span>.</>}
         />
       </section>
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
